@@ -9,3 +9,10 @@
 </script>
 
 <slot>This page has no content</slot>
+
+<style>
+	:global(body) {
+		height: 100dvh;
+		background-color: cornflowerblue;
+	}
+</style>
