@@ -5,6 +5,7 @@ import { polar } from './utils'
 export interface Engine {
 	is_ready: boolean
 	error?: string
+	show_update_spinner: boolean
 
 	readonly canvas: HTMLCanvasElement
 	readonly gfx: CanvasRenderingContext2D
@@ -25,10 +26,14 @@ export interface Engine {
 }
 
 export interface EngineConfig {
+	show_update_spinner?: boolean
+
+	content?: ConfigConfig
+
 	gfx_settings?: CanvasRenderingContext2DSettings
 	gfx_image_smoothing?: boolean
+
 	audio_options?: AudioContextOptions
-	content?: ConfigConfig
 }
 
 export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): Engine {
@@ -37,8 +42,11 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 	const audio = new AudioContext(config.audio_options)
 	const content = create_content(audio, config.content)
 
+	let frame_index = 0
+
 	return {
 		is_ready: false,
+		show_update_spinner: config.show_update_spinner || false,
 
 		canvas,
 		gfx,
@@ -55,15 +63,38 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 		load_content: async function (): Promise<void> { },
 		start: function () { },
 		render: function () {
-			if (this.error) {
+
+			if (this.error)
 				this.on_render_error()
-				return
-			}
-			if (this.is_ready) {
+			else if (this.is_ready)
 				this.on_render()
-				return
+			else
+				this.on_render_loading(-1)
+
+			if (this.show_update_spinner) {
+				gfx.save()
+				gfx.resetTransform()
+
+				gfx.translate(64, 64)
+
+				gfx.beginPath()
+				gfx.ellipse(0, 0, 20, 20, 0, 0, 2 * Math.PI)
+				gfx.fillStyle = 'black'
+				gfx.strokeStyle = 'white'
+				gfx.lineWidth = 3
+				gfx.lineCap = 'round'
+				gfx.fill()
+				gfx.stroke()
+
+				gfx.rotate(frame_index++ / 12 * 2 * Math.PI)
+
+				gfx.beginPath()
+				gfx.moveTo(0, 0)
+				gfx.lineTo(0, -10)
+				gfx.stroke()
+
+				gfx.restore()
 			}
-			this.on_render_loading(-1)
 		},
 		on_render: function () {
 			gfx.save()

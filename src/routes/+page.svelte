@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
+	import { create_game } from '$lib/game/game'
 	import { onMount } from 'svelte'
 
 	let canvas: HTMLCanvasElement
@@ -9,7 +10,8 @@
 	let engine: Engine
 
 	onMount(() => {
-		engine = create_engine(canvas, {})
+		engine = create_engine(canvas, { show_update_spinner: true })
+		create_game(engine)
 		engine.initialize()
 	})
 
@@ -31,11 +33,11 @@
 	}
 </script>
 
-<div bind:this={container} class="bg-black w-full h-full grid place-items-center">
+<div bind:this={container} class="bg-[#2c1b2e] w-full h-full grid place-items-center">
 	<canvas
 		bind:this={canvas}
 		use:fill_canvas={() => engine.render()}
-		class="w-full h-full image-render-pixel bg-white"
+		class="w-full h-full image-render-pixel"
 	/>
 </div>
 
