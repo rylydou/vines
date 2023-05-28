@@ -1,5 +1,6 @@
 export function scale_canvas(canvas: HTMLCanvasElement) {
-	const container = canvas.parentElement!
+	const parent = canvas.parentElement
+	if (!parent) throw new Error('This canvas has no parent.')
 
 	const resize_observer = new ResizeObserver(
 		(entries, observer) => {
@@ -7,7 +8,7 @@ export function scale_canvas(canvas: HTMLCanvasElement) {
 		}
 	)
 
-	resize_observer.observe(container)
+	resize_observer.observe(parent)
 
 	return {
 		destroy() {
@@ -23,14 +24,13 @@ function _scale_resize(canvas: HTMLCanvasElement, entry: ResizeObserverEntry): v
 }
 
 export function fill_canvas(canvas: HTMLCanvasElement, resized?: () => void) {
-	const parent = canvas.parentElement!
-	if (!parent)
-		throw new Error('Cannot be smart canvas. This canvas has no parent.')
+	const parent = canvas.parentElement
+	if (!parent) throw new Error('This canvas has no parent.')
 
 	const resize_observer = new ResizeObserver(
 		(entries, observer) => {
 			_fill_resize(canvas, entries[0])
-			// if (resized) resized()
+			if (resized) resized()
 		}
 	)
 	try {

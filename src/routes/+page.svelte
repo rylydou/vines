@@ -1,25 +1,48 @@
 <script lang="ts">
-	import { smart_canvas } from '$lib/directives'
-	import { scale_canvas } from '$lib/directives/canvas'
-	import { grow_engine, type EngineConfig } from '$lib/directives/grow_engine'
+	import { fill_canvas } from '$lib/directives/canvas'
+	import { create_engine, type Engine } from '$lib/engine'
 	import { onMount } from 'svelte'
 
 	let canvas: HTMLCanvasElement
+	let container: HTMLDivElement
+
+	let engine: Engine
+
 	onMount(() => {
-		const config = {
-			content_root: 'content/',
-		} as EngineConfig
-		const engine = grow_engine(canvas, config)
-		engine.start()
+		engine = create_engine(canvas, {})
+		engine.initialize()
 	})
+
+	function fullscreen() {
+		const ele = container
+		if (ele.requestFullscreen) {
+			ele.requestFullscreen()
+			// @ts-ignore
+		} else if (ele.webkitRequestFullscreen) {
+			// Safari
+			// @ts-ignore
+			ele.webkitRequestFullscreen()
+			// @ts-ignore
+		} else if (ele.msRequestFullscreen) {
+			// IE11
+			// @ts-ignore
+			ele.msRequestFullscreen()
+		}
+	}
 </script>
 
-<div class="w-full h-full grid place-items-center">
+<div bind:this={container} class="bg-black w-full h-full grid place-items-center">
 	<canvas
 		bind:this={canvas}
-		use:scale_canvas
-		width="320"
-		height="180"
+		use:fill_canvas={() => engine.render()}
 		class="w-full h-full image-render-pixel bg-white"
 	/>
 </div>
+
+<button
+	class="absolute z-50 bottom-6 right-6 p-2 bg-black color-white hover:(bg-white color-black)"
+	on:click={fullscreen}
+	title="Go fullscreen"
+>
+	<div class="i-pixelarticons-scale min-w-6 min-h-6" />
+</button>
