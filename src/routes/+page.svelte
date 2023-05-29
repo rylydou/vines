@@ -1,17 +1,22 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
+	import { Tile, type Game } from '$lib/game'
 	import { create_game } from '$lib/game/game'
 	import { onMount } from 'svelte'
+	import type { Writable } from 'svelte/store'
 
 	let canvas: HTMLCanvasElement
 	let container: HTMLDivElement
 
 	let engine: Engine
+	let game: Game
+	let debug_item: Writable<number>
 
 	onMount(() => {
 		engine = create_engine(canvas, { show_update_spinner: true })
-		create_game(engine)
+		game = create_game(engine)
+		debug_item = game.debug_item
 		engine.initialize()
 	})
 
@@ -39,6 +44,28 @@
 		use:fill_canvas={() => engine.render()}
 		class="w-full h-full image-render-pixel"
 	/>
+
+	{#if game}
+		<div class="absolute left-[50%] translate-[-50%] top-8 flex flex-row color-white">
+			{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
+				<button
+					class="px-4 py-2 font-bold bg-transparent hover:(underline decoration-2 decoration-offset-2)"
+					class:bg-white={$debug_item == index}
+					class:color-black={$debug_item == index}
+					on:click={() => {
+						if ($debug_item == index) {
+							$debug_item = -1
+							return
+						}
+						$debug_item = index
+						console.log($debug_item)
+					}}
+				>
+					{tile}
+				</button>
+			{/each}
+		</div>
+	{/if}
 </div>
 
 <button

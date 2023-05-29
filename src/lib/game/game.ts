@@ -1,22 +1,19 @@
 import type { Engine } from '$lib/engine'
 import { polar } from '$lib/engine/utils'
+import { get, writable, type Writable } from 'svelte/store'
+import { Tile } from '.'
 
-export enum Tile {
-	Empty,
-	Wall,
-	Vine,
-	Source,
+export interface Game {
+	debug_item: Writable<number>
 }
 
-export function create_game(engine: Engine) {
-	const width = 15
+export function create_game(engine: Engine): Game {
+	let game = {
+		debug_item: writable(-1)
+	} as Game
+	const width = 20
 	const height = 10
 	const grid = create_grid(width, height)
-	grid[4][4] = Tile.Wall
-	grid[4][5] = Tile.Wall
-	grid[5][5] = Tile.Wall
-	grid[6][5] = Tile.Wall
-	grid[2][2] = Tile.Source
 
 	function get_connected(x: number, y: number): Tile[] {
 		return [
@@ -65,31 +62,57 @@ export function create_game(engine: Engine) {
 						gray.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
 						break
 					case Tile.Vine:
-						green.moveTo(x, y)
-						green.lineTo(x + 1, y)
-						green.lineTo(x + 1, y + 1)
-						green.lineTo(x, y + 1)
+						lime.moveTo(x + .5, y + .5)
+						const radius = get_connected(x, y).filter(t => t == Tile.Vine).length <= 1 ? .35 : .25
+						lime.ellipse(x + .5, y + .5, radius, radius, 0, 0, 2 * Math.PI)
+						// lime.roundRect(x + .2, y + .2, .6, .6, 4 / 16)
+						// lime.moveTo(x + .2, y + .2)
+						// lime.lineTo(x + .8, y + .2)
+						// lime.lineTo(x + .8, y + .8)
+						// lime.lineTo(x + .2, y + .8)
+
+						if (((grid[x - 1] || [])[y] || Tile.Empty) == Tile.Vine) {
+							green.moveTo(x, y + .4)
+							green.lineTo(x + .5, y + .4)
+							green.lineTo(x + .5, y + .6)
+							green.lineTo(x, y + .6)
+						}
+
+						if (((grid[x + 1] || [])[y] || Tile.Empty) == Tile.Vine) {
+							green.moveTo(x + 1, y + .4)
+							green.lineTo(x + .5, y + .4)
+							green.lineTo(x + .5, y + .6)
+							green.lineTo(x + 1, y + .6)
+						}
+
+						if ((grid[x][y - 1] || Tile.Empty) == Tile.Vine) {
+							green.moveTo(x + .4, y)
+							green.lineTo(x + .4, y + .5)
+							green.lineTo(x + .6, y + .5)
+							green.lineTo(x + .6, y)
+						}
+						if ((grid[x][y + 1] || Tile.Empty) == Tile.Vine) {
+							green.moveTo(x + .4, y + 1)
+							green.lineTo(x + .4, y + .5)
+							green.lineTo(x + .6, y + .5)
+							green.lineTo(x + .6, y + 1)
+						}
 
 						// yellow.moveTo(x + .5, y + .5)
 						// for (const p of polar(0, 7, 64, t => .4 * Math.cos(t * 4))) {
 						// 	yellow.lineTo(x + p.x + .5, y + p.y + .5)
 						// }
-						lime.moveTo(x, y)
-						lime.lineTo(x + .1, y)
-						lime.lineTo(x + 1, y + .9)
-						lime.lineTo(x + 1, y + 1)
-						lime.lineTo(x + .9, y + 1)
-						lime.lineTo(x, y + .1)
-						lime.lineTo(x, y + .1)
-						break
-					case Tile.Source:
-						lime.moveTo(x, y)
-						lime.lineTo(x + 1, y)
-						lime.lineTo(x + 1, y + 1)
-						lime.lineTo(x, y + 1)
+						// lime.moveTo(x, y)
+						// lime.lineTo(x + .1, y)
+						// lime.lineTo(x + 1, y + .9)
+						// lime.lineTo(x + 1, y + 1)
+						// lime.lineTo(x + .9, y + 1)
+						// lime.lineTo(x, y + .1)
+						// lime.lineTo(x, y + .1)
 						break
 				}
 			}
+
 		}
 
 		gfx.fillStyle = '#57253b'; gfx.fill(gray_dark)
@@ -108,18 +131,26 @@ export function create_game(engine: Engine) {
 		const iy = Math.floor(my)
 		if (ix < 0 || ix >= width || iy < 0 || iy >= height) return
 
+		const debug_item = get(game.debug_item)
+		if (debug_item >= 0) {
+			grid[ix][iy] = debug_item as Tile
+			engine.render()
+			return
+		}
+
 		const cell = grid[ix][iy]
 		const connected = get_connected(ix, iy)
 		const vines = connected.filter(t => t == Tile.Vine).length
 
 		if (cell != Tile.Empty) return
 
-		if (vines > 0 || connected.some(t => t == Tile.Source)) {
-			if (vines > 1) return
+		if (vines == 1) {
 			grid[ix][iy] = Tile.Vine
 			engine.render()
 		}
 	})
+
+	return game
 }
 
 function create_grid(width: number, height: number): Tile[][] {

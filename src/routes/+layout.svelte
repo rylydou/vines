@@ -10,9 +10,10 @@
 
 <slot>This page has no content</slot>
 
-<style>
+<style lang="postcss">
 	:global(body) {
 		height: 100dvh;
 		background-color: cornflowerblue;
+		@apply font-sans;
 	}
 </style>
