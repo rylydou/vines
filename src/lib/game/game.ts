@@ -1,5 +1,4 @@
 import type { Engine } from '$lib/engine'
-import { polar } from '$lib/engine/utils'
 import { get, writable, type Writable } from 'svelte/store'
 import { create_grid, Tile } from '.'
 
@@ -8,14 +7,16 @@ export interface Game {
 	grid: Tile[][]
 	width: number
 	height: number
+	water: Writable<number>
 }
 
 export function create_game(engine: Engine): Game {
 	let game = {
 		debug_item: writable(-1),
-		width: 10,
-		height: 10,
-		grid: create_grid(10, 10),
+		width: 8,
+		height: 6,
+		grid: create_grid<Tile>(8, 6, Tile.Empty),
+		water: writable(99),
 	} as Game
 
 	function get_connected(x: number, y: number): Tile[] {
@@ -49,9 +50,11 @@ export function create_game(engine: Engine): Game {
 
 		const gray_dark = new Path2D()
 		const gray = new Path2D()
+		const tan = new Path2D()
 		const green = new Path2D()
 		const lime = new Path2D()
 		const yellow = new Path2D()
+		const blue = new Path2D()
 
 		for (let x = 0; x < game.width; x++) {
 			for (let y = 0; y < game.height; y++) {
@@ -67,16 +70,8 @@ export function create_game(engine: Engine): Game {
 					case Tile.Vine:
 						lime.moveTo(x + .5, y + .5)
 						const is_ending = get_connected(x, y).filter(t => t == Tile.Vine).length <= 1
-						if (is_ending) {
-							yellow.moveTo(x + .5, y + .5)
-							for (const p of polar(0, 7, 100, (t) => 0.4 * Math.cos(4 * t))) {
-								yellow.lineTo(x + .5 + p.x, y + .5 + p.y)
-							}
-						}
-						else {
-							const radius = is_ending ? .35 : .25
-							lime.ellipse(x + .5, y + .5, radius, radius, 0, 0, 2 * Math.PI)
-						}
+						const radius = is_ending ? .35 : .25
+						lime.ellipse(x + .5, y + .5, radius, radius, 0, 0, 2 * Math.PI)
 
 						// lime.roundRect(x + .2, y + .2, .6, .6, 4 / 16)
 						// lime.moveTo(x + .2, y + .2)
@@ -111,12 +106,21 @@ export function create_game(engine: Engine): Game {
 							green.lineTo(x + .6, y + 1)
 						}
 						break
+					case Tile.Water:
+						blue.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
+						break
+					case Tile.Pot:
+						tan.moveTo(x + .5, y + .5)
+						tan.ellipse(x + .5, y + .5, 6 / 16, 6 / 16, 0, 0, 7)
+						break
 				}
 			}
 		}
 
 		gfx.fillStyle = '#57253b'; gfx.fill(gray_dark)
+		gfx.fillStyle = '#457cd6'; gfx.fill(blue)
 		gfx.fillStyle = '#9c656c'; gfx.fill(gray)
+		gfx.fillStyle = '#d1b48c'; gfx.fill(tan)
 		gfx.fillStyle = '#6d8c32'; gfx.fill(green)
 		gfx.fillStyle = '#b4ba47'; gfx.fill(lime)
 		gfx.fillStyle = '#f2b63d'; gfx.fill(yellow)
@@ -164,12 +168,15 @@ export function create_game(engine: Engine): Game {
 		}
 
 		const cell = game.grid[x][y]
+		if (cell != Tile.Empty) return
+
 		const connected = get_connected(x, y)
 		const vines = connected.filter(t => t == Tile.Vine).length
 
-		if (cell != Tile.Empty) return
-
 		if (vines == 1) {
+			if (get(game.water) <= 0) return
+			game.water.update(x => x - 1)
+
 			set_tile(x, y, Tile.Vine)
 		}
 	}

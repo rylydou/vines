@@ -13,7 +13,7 @@
 <style lang="postcss">
 	:global(body) {
 		height: 100dvh;
-		background-color: cornflowerblue;
+		background-color: black;
 		@apply font-sans;
 	}
 </style>

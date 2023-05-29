@@ -40,7 +40,7 @@
 	function create() {
 		const width = Number.parseInt(prompt('Level Width', '10') || '10')
 		const height = Number.parseInt(prompt('Level Height', '10') || '10')
-		game.grid = create_grid(width, height)
+		game.grid = create_grid<Tile>(width, height, Tile.Empty)
 		game.width = width
 		game.height = height
 		engine.render()
@@ -56,7 +56,7 @@
 	}
 
 	function load_from() {
-		filename = prompt('Filename') || ''
+		filename = prompt('Filename', filename) || filename
 		const json = localStorage.getItem(PREFIX + filename)
 		if (!json) return
 		game.grid = JSON.parse(json)
@@ -74,7 +74,7 @@
 	/>
 
 	{#if game}
-		<div class="absolute left-[50%] translate-[-50%] top-12 flex flex-row gap-2 color-white">
+		<div class="absolute left-[50%] translate-x-[-50%] top-12 flex flex-row gap-2 color-white">
 			{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
 				<button
 					class:bg-white={$debug_item == index}
