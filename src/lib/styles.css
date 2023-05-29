@@ -1,0 +1,3 @@
+button {
+	@apply flex flex-row gap-2 px-4 py-2 font-bold decoration-2 decoration-offset-2 bg-black color-white hover:(bg-white color-black underline);
+}

@@ -63,6 +63,7 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 		load_content: async function (): Promise<void> { },
 		start: function () { },
 		render: function () {
+			const start_time = performance.now()
 
 			if (this.error)
 				this.on_render_error()
@@ -71,17 +72,29 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 			else
 				this.on_render_loading(-1)
 
+			const end_time = performance.now()
+			const time_taken = end_time - start_time
+
 			if (this.show_update_spinner) {
 				gfx.save()
 				gfx.resetTransform()
 
 				gfx.translate(64, 64)
 
+				gfx.font = 'bold 20px monospace'
+				gfx.textAlign = 'center'
+				gfx.textBaseline = 'top'
+				gfx.fillStyle = 'red'
+				gfx.filter = 'drop-shadow(0 0 6px black)'
+				gfx.fillStyle = 'white'
+				gfx.fillText(`${time_taken}ms`, 0, 32)
+				gfx.filter = 'none'
+
 				gfx.beginPath()
 				gfx.ellipse(0, 0, 20, 20, 0, 0, 2 * Math.PI)
 				gfx.fillStyle = 'black'
 				gfx.strokeStyle = 'white'
-				gfx.lineWidth = 3
+				gfx.lineWidth = 4
 				gfx.lineCap = 'round'
 				gfx.fill()
 				gfx.stroke()

@@ -7,8 +7,9 @@ import presetIcons from '@unocss/preset-icons'
 export default defineConfig({
 	theme: {
 		colors: {
-			fg: 'var(--fg)',
-			bg: 'var(--bg)',
+			fg: '#fff4e0',
+			bg: '#2c1b2e',
+			yellow: '#f2b63d',
 		}
 	},
 	presets: [
