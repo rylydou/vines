@@ -5,7 +5,8 @@ import { sleep } from '$lib/engine/utils'
 
 export interface Game {
 	engine: Engine
-	debug_item: Writable<number>
+	editor_active: Writable<boolean>
+	editor_item: Writable<number>
 	grid: Tile[][]
 	width: number
 	height: number
@@ -17,28 +18,29 @@ export interface Game {
 export function create_game(engine: Engine): Game {
 	let game = {
 		engine,
-		debug_item: writable(-1),
+		editor_active: writable(false),
+		editor_item: writable(-1),
 		width: 8,
 		height: 6,
 		grid: create_grid<Tile>(8, 6, Tile.Empty),
 		water: writable(99),
-		get_transform: (gfx) => {
+		get_transform: function (gfx) {
 			const h_scale = gfx.canvas.width / game.width * .75
 			const v_scale = (gfx.canvas.height - 256) / game.height
 			const scale = Math.min(h_scale, v_scale)
-			const x = (gfx.canvas.width - game.width * scale) / 2
+			const x = get(this.editor_active) ? 0 : (gfx.canvas.width - game.width * scale) / 2
 			const y = (gfx.canvas.height - game.height * scale) / 2 + 32
 			return {
 				translation: { x, y },
 				scale,
 			}
 		},
-		get_connected: (x, y) => {
+		get_connected: function (x, y) {
 			return [
-				(game.grid[x - 1] || [])[y] || Tile.Empty,
-				(game.grid[x + 1] || [])[y] || Tile.Empty,
-				game.grid[x][y - 1] || Tile.Empty,
-				game.grid[x][y + 1] || Tile.Empty,
+				(this.grid[x - 1] || [])[y] || Tile.Empty,
+				(this.grid[x + 1] || [])[y] || Tile.Empty,
+				this.grid[x][y - 1] || Tile.Empty,
+				this.grid[x][y + 1] || Tile.Empty,
 			]
 		},
 	} as Game
@@ -57,7 +59,7 @@ export function create_game(engine: Engine): Game {
 		gfx.font = `bold 1px "Nippo"`
 		gfx.fillStyle = '#457cd6'
 		const text = get(game.water).toString()
-		gfx.fillText(text, game.width / 2, 2 / 16)
+		gfx.fillText(text, game.width / 2, 1 / 16)
 		gfx.fillStyle = '#fff4e0'
 		gfx.fillText(text, game.width / 2, 0)
 	}
@@ -101,7 +103,7 @@ export function create_game(engine: Engine): Game {
 	function place_tile(x: number, y: number) {
 		if (x < 0 || x >= game.width || y < 0 || y >= game.height) return
 
-		const debug_item = get(game.debug_item)
+		const debug_item = get(game.editor_item)
 		if (debug_item >= 0) {
 			set_tile(x, y, debug_item as Tile)
 			return

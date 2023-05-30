@@ -80,7 +80,7 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 			const end_time = performance.now()
 			const time_taken = end_time - start_time
 
-			if (this.show_update_spinner) {
+			if (this.show_update_spinner && !document.fullscreenElement) {
 				gfx.save()
 				gfx.resetTransform()
 

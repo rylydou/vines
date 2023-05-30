@@ -3,7 +3,7 @@
 	import { create_engine, type Engine } from '$lib/engine'
 	import { Tile, type Game, create_grid } from '$lib/game'
 	import { create_game } from '$lib/game/game'
-	import { onMount } from 'svelte'
+	import { getAllContexts, onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'
 
 	let canvas: HTMLCanvasElement
@@ -12,15 +12,16 @@
 	let engine: Engine
 	let game: Game
 
-	let debug_item: Writable<number>
+	let editor_active: Writable<boolean>
+	let editor_item: Writable<number>
 	let water: Writable<number>
-	let enable_editor = true
 
 	onMount(() => {
 		engine = create_engine(canvas, { show_update_spinner: true })
 		game = create_game(engine)
-		debug_item = game.debug_item
+		editor_item = game.editor_item
 		water = game.water
+		editor_active = game.editor_active
 		engine.initialize()
 	})
 
@@ -77,9 +78,9 @@
 		class="w-full h-full image-render-pixel"
 	/>
 
-	{#if game && enable_editor}
-		<div class="absolute right-12 flex flex-col bg-black color-white p-4">
-			<div class="flex flex-row mb-6">
+	{#if game && $editor_active}
+		<div class="absolute right-12 flex flex-col h-96 p-4 bg-black color-white">
+			<div class="flex flex-row">
 				<button on:click={create}>
 					<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
 					Create
@@ -93,30 +94,58 @@
 					Load
 				</button>
 			</div>
-			<div class="flex flex-row flex-wrap gap-1">
+
+			<div class="flex flex-row">
 				{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
 					<button
-						class:solid-inv={$debug_item == index}
+						class="px-1.5 py-0.5"
+						class:solid-inv={$editor_item == index}
 						on:click={() => {
-							if ($debug_item == index) {
-								$debug_item = -1
+							if ($editor_item == index) {
+								$editor_item = -1
 								return
 							}
-							$debug_item = index
+							$editor_item = index
 						}}
 					>
 						{tile}
 					</button>
 				{/each}
 			</div>
+
+			<label class="mt-6">
+				<span>Starting water</span>
+				<input
+					class="w-full"
+					type="text"
+					inputmode="numeric"
+					pattern="\d*"
+					bind:value={$water}
+					on:change={() => engine.render()}
+				/>
+			</label>
 		</div>
 	{/if}
 </div>
 
-<button
-	class="absolute z-50 bottom-12 right-12 solid icon"
-	on:click={fullscreen}
-	title="Go fullscreen"
->
-	<div class="i-pixelarticons-scale min-w-6 min-h-6" />
-</button>
+<div class="absolute z-50 bottom-12 right-12 flex flex-row-reverse gap-2">
+	<button class=" solid icon" on:click={fullscreen} title="Go fullscreen">
+		<div class="i-pixelarticons-scale min-w-6 min-h-6" />
+	</button>
+
+	{#if editor_active}
+		<button
+			class="solid icon"
+			on:click={() => {
+				editor_active.update((x) => !x)
+				engine.render()
+			}}
+		>
+			{#if $editor_active}
+				<div class="i-pixelarticons-close min-w-6 min-h-6" />
+			{:else}
+				<div class="i-pixelarticons-edit min-w-6 min-h-6" />
+			{/if}
+		</button>
+	{/if}
+</div>

@@ -13,3 +13,27 @@ button.solid-inv {
 button.icon {
 	@apply p-2 hover:(bg-white color-black);
 }
+
+label {
+	@apply relative mt-2;
+}
+
+input {
+	@apply px-4 py-2 border border-white border-2 bg-black color-white;
+}
+
+label > span {
+	@apply select-none absolute left-2 -top-4 px-2 bg-black;
+}
+
+input[type=number] {
+	-moz-appearance: textfield;
+}
+
+details {
+	@apply cursor-pointer;
+}
+
+details > summary {
+	@apply mb-4;
+}
