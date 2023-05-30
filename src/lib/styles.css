@@ -1,3 +1,15 @@
 button {
-	@apply flex flex-row gap-2 px-4 py-2 decoration-2 decoration-offset-2 bg-black color-white hover:(bg-white color-black underline);
+	@apply flex flex-row gap-2 px-4 py-2 bg-transparent decoration-2 decoration-offset-2 hover:(underline);
+}
+
+button.solid {
+	@apply bg-black color-white;
+}
+
+button.solid-inv {
+	@apply bg-white color-black;
+}
+
+button.icon {
+	@apply p-2 hover:(bg-white color-black);
 }

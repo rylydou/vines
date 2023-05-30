@@ -14,6 +14,7 @@
 
 	let debug_item: Writable<number>
 	let water: Writable<number>
+	let enable_editor = true
 
 	onMount(() => {
 		engine = create_engine(canvas, { show_update_spinner: true })
@@ -76,51 +77,46 @@
 		class="w-full h-full image-render-pixel"
 	/>
 
-	{#if game}
-		<!-- 		<div
-			class="absolute top-[7.5vh] left-[50%] translate-x-[-50%] text-6xl font-bold color-[#8fcccb]"
-		>
-			<span class="text-[7.5vh]">
-				{$water}
-			</span>
-		</div> -->
-
-		<div class="absolute bottom-12 left-[50%] translate-x-[-50%] flex flex-row gap-2 color-white">
-			{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
-				<button
-					class:bg-white={$debug_item == index}
-					class:color-black={$debug_item == index}
-					class:underline={$debug_item == index}
-					on:click={() => {
-						if ($debug_item == index) {
-							$debug_item = -1
-							return
-						}
-						$debug_item = index
-					}}
-				>
-					{tile}
+	{#if game && enable_editor}
+		<div class="absolute right-12 flex flex-col bg-black color-white p-4">
+			<div class="flex flex-row mb-6">
+				<button on:click={create}>
+					<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
+					Create
 				</button>
-			{/each}
-		</div>
-
-		<div class="absolute bottom-12 left-12 flex flex-row gap-2">
-			<button on:click={create}>
-				<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
-				Create
-			</button>
-			<button on:click={save}>
-				<div class="i-pixelarticons-save min-w-6 min-h-6" />
-				Save
-			</button>
-			<button on:click={load_from}>
-				<div class="i-pixelarticons-file min-w-6 min-h-6" />
-				Load
-			</button>
+				<button on:click={save}>
+					<div class="i-pixelarticons-save min-w-6 min-h-6" />
+					Save
+				</button>
+				<button on:click={load_from}>
+					<div class="i-pixelarticons-file min-w-6 min-h-6" />
+					Load
+				</button>
+			</div>
+			<div class="flex flex-row flex-wrap gap-1">
+				{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
+					<button
+						class:solid-inv={$debug_item == index}
+						on:click={() => {
+							if ($debug_item == index) {
+								$debug_item = -1
+								return
+							}
+							$debug_item = index
+						}}
+					>
+						{tile}
+					</button>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>
 
-<button class="absolute z-50 bottom-12 right-12 p-2" on:click={fullscreen} title="Go fullscreen">
+<button
+	class="absolute z-50 bottom-12 right-12 solid icon"
+	on:click={fullscreen}
+	title="Go fullscreen"
+>
 	<div class="i-pixelarticons-scale min-w-6 min-h-6" />
 </button>

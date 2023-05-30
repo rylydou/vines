@@ -23,9 +23,11 @@ export function create_game(engine: Engine): Game {
 		grid: create_grid<Tile>(8, 6, Tile.Empty),
 		water: writable(99),
 		get_transform: (gfx) => {
-			const scale = Math.min(gfx.canvas.width / game.width, gfx.canvas.height / game.height) * 0.75
+			const h_scale = gfx.canvas.width / game.width * .75
+			const v_scale = (gfx.canvas.height - 256) / game.height
+			const scale = Math.min(h_scale, v_scale)
 			const x = (gfx.canvas.width - game.width * scale) / 2
-			const y = (gfx.canvas.height - game.height * scale) / 2
+			const y = (gfx.canvas.height - game.height * scale) / 2 + 32
 			return {
 				translation: { x, y },
 				scale,
@@ -51,9 +53,13 @@ export function create_game(engine: Engine): Game {
 		const gfx = this.gfx
 		gfx.textAlign = 'center'
 		gfx.textBaseline = 'bottom'
-		gfx.font = 'bold 0.5px "Nippo"'
-		gfx.fillStyle = '#8fcccb'
-		gfx.fillText('' + get(game.water), game.width / 2, 0)
+		const transform = game.get_transform(gfx)
+		gfx.font = `bold 1px "Nippo"`
+		gfx.fillStyle = '#457cd6'
+		const text = get(game.water).toString()
+		gfx.fillText(text, game.width / 2, 2 / 16)
+		gfx.fillStyle = '#fff4e0'
+		gfx.fillText(text, game.width / 2, 0)
 	}
 
 	let down = false
