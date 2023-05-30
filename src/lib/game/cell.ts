@@ -13,16 +13,6 @@ export interface VineCell extends Cell {
 	color: Color
 }
 
-export interface VineCell extends Cell {
-	id: 'vine'
-	color: Color
-}
-
-export interface VineStartCell extends Cell {
-	id: 'vine_start'
-	color: Color
-}
-
 export interface WatcherCell extends Cell {
 	id: 'watcher'
 	criteria: Criteria

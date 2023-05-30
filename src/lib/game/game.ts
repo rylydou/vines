@@ -1,18 +1,17 @@
 import type { Engine } from '$lib/engine'
 import { get, writable, type Writable } from 'svelte/store'
-import { create_grid, Tile, colors, render_board } from '.'
-import { sleep } from '$lib/engine/utils'
+import { create_grid, colors, render_board, type Cell, create_grid_ex, type VineCell, Color } from '.'
 
 export interface Game {
 	engine: Engine
 	editor_active: Writable<boolean>
 	editor_item: Writable<number>
-	grid: Tile[][]
+	grid: (Cell | null)[][]
 	width: number
 	height: number
 	water: Writable<number>
 	get_transform: (gfx: CanvasRenderingContext2D) => { translation: { x: number, y: number }, scale: number }
-	get_connected: (x: number, y: number) => Tile[]
+	get_connected: (x: number, y: number) => Cell[]
 }
 
 export function create_game(engine: Engine): Game {
@@ -22,14 +21,16 @@ export function create_game(engine: Engine): Game {
 		editor_item: writable(-1),
 		width: 8,
 		height: 6,
-		grid: create_grid<Tile>(8, 6, Tile.Empty),
+		grid: create_grid<Cell | null>(8, 6, null),
 		water: writable(99),
 		get_transform: function (gfx) {
-			const h_scale = gfx.canvas.width / game.width * .75
-			const v_scale = (gfx.canvas.height - 256) / game.height
+			const h_scale = gfx.canvas.width / (game.width + 1)
+			const v_scale = gfx.canvas.height / (game.height + 2)
 			const scale = Math.min(h_scale, v_scale)
+
 			const x = get(this.editor_active) ? 0 : (gfx.canvas.width - game.width * scale) / 2
-			const y = (gfx.canvas.height - game.height * scale) / 2 + 32
+			const y = (gfx.canvas.height - game.height * scale) / 2 + .5 * scale
+
 			return {
 				translation: { x, y },
 				scale,
@@ -37,13 +38,18 @@ export function create_game(engine: Engine): Game {
 		},
 		get_connected: function (x, y) {
 			return [
-				(this.grid[x - 1] || [])[y] || Tile.Empty,
-				(this.grid[x + 1] || [])[y] || Tile.Empty,
-				this.grid[x][y - 1] || Tile.Empty,
-				this.grid[x][y + 1] || Tile.Empty,
+				(this.grid[x - 1] || [])[y] || null,
+				(this.grid[x + 1] || [])[y] || null,
+				this.grid[x][y - 1] || null,
+				this.grid[x][y + 1] || null,
 			]
 		},
 	} as Game
+
+	game.grid[2][2] = { id: 'vine', color: Color.Green } as VineCell
+	game.grid[4][2] = { id: 'vine', color: Color.Yellow } as VineCell
+	game.grid[2][4] = { id: 'vine', color: Color.Blue } as VineCell
+	game.grid[4][4] = { id: 'vine', color: Color.Red } as VineCell
 
 	engine.load_content = async function () {
 		await document.onload
@@ -55,7 +61,6 @@ export function create_game(engine: Engine): Game {
 		const gfx = this.gfx
 		gfx.textAlign = 'center'
 		gfx.textBaseline = 'bottom'
-		const transform = game.get_transform(gfx)
 		gfx.font = `bold 1px "Nippo"`
 		gfx.fillStyle = '#457cd6'
 		const text = get(game.water).toString()
@@ -65,6 +70,7 @@ export function create_game(engine: Engine): Game {
 	}
 
 	let down = false
+	let vine_color: Color | null = Color.None
 	engine.canvas.addEventListener('pointerdown', (ev) => {
 		const { x, y } = engine.transform_client_point(ev.clientX, ev.clientY)
 		const transform = game.get_transform(engine.gfx)
@@ -78,9 +84,17 @@ export function create_game(engine: Engine): Game {
 			if (ev.pointerId === e.pointerId) {
 				down = false
 			}
-		},)
+		})
 
-		place_tile(ix, iy)
+		const cell = game.grid[ix][iy]
+
+		if (cell && cell.id === 'vine') {
+			vine_color = (cell as VineCell).color
+		}
+
+		if (get(game.editor_active)) {
+			place_tile(ix, iy)
+		}
 	})
 
 	engine.canvas.addEventListener('pointermove', (ev) => {
@@ -105,25 +119,25 @@ export function create_game(engine: Engine): Game {
 
 		const debug_item = get(game.editor_item)
 		if (debug_item >= 0) {
-			set_tile(x, y, debug_item as Tile)
+			// set_tile(x, y, debug_item as Cell)
 			return
 		}
 
 		const cell = game.grid[x][y]
-		if (cell != Tile.Empty) return
+		if (cell) return
 
 		const connected = game.get_connected(x, y)
-		const vines = connected.filter(t => t == Tile.Vine).length
+		const vines = connected.filter(t => t && t.id === 'vine' && (t as VineCell).color === vine_color).length
 
 		if (vines == 1) {
 			if (get(game.water) <= 0) return
 			game.water.update(x => x - 1)
 
-			set_tile(x, y, Tile.Vine)
+			set_tile(x, y, { id: 'vine', color: vine_color } as VineCell)
 		}
 	}
 
-	function set_tile(x: number, y: number, tile: Tile) {
+	function set_tile(x: number, y: number, tile: Cell) {
 		const cell = game.grid[x][y]
 		if (cell == tile) return
 		game.grid[x][y] = tile

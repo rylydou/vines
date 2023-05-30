@@ -17,7 +17,7 @@ export const colors = {
 export enum Color {
 	None,
 	Green,
-	Red,
-	Blue,
 	Yellow,
+	Blue,
+	Red,
 }
