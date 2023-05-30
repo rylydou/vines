@@ -54,8 +54,13 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 		content,
 
 		initialize: async function (): Promise<void> {
+			console.log('loading game...')
 			this.on_render_loading(-1)
+
+			console.time('loaded game')
 			await this.load_content()
+			console.timeEnd('loaded game')
+
 			this.is_ready = true
 			this.start()
 			this.render()
@@ -140,13 +145,16 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 			gfx.save()
 			gfx.resetTransform()
 			gfx.clearRect(0, 0, canvas.width, canvas.height)
-			gfx.font = 'monospace 32px'
+
+			const text = progress > 0 ? `Loading ${Math.round(progress * 100)}%` : 'Loading...'
+
+			gfx.font = 'bold 32px sans-serif'
 			gfx.textAlign = 'center'
 			gfx.textBaseline = 'middle'
-			if (progress > 0)
-				gfx.fillText(`Loading ${Math.round(progress * 100)}%`, (canvas.width) / 2, (canvas.height) / 2)
-			else
-				gfx.fillText('Loading...', (canvas.width) / 2, (canvas.height) / 2)
+			gfx.fillStyle = 'white'
+			gfx.filter = 'blur(0 0 6px black)'
+			gfx.fillText(text, (canvas.width) / 2, (canvas.height) / 2)
+
 			gfx.restore()
 		},
 		on_render_error: function () {

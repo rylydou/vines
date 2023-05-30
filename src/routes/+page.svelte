@@ -11,12 +11,15 @@
 
 	let engine: Engine
 	let game: Game
+
 	let debug_item: Writable<number>
+	let water: Writable<number>
 
 	onMount(() => {
 		engine = create_engine(canvas, { show_update_spinner: true })
 		game = create_game(engine)
 		debug_item = game.debug_item
+		water = game.water
 		engine.initialize()
 	})
 
@@ -74,7 +77,15 @@
 	/>
 
 	{#if game}
-		<div class="absolute left-[50%] translate-x-[-50%] top-12 flex flex-row gap-2 color-white">
+		<!-- 		<div
+			class="absolute top-[7.5vh] left-[50%] translate-x-[-50%] text-6xl font-bold color-[#8fcccb]"
+		>
+			<span class="text-[7.5vh]">
+				{$water}
+			</span>
+		</div> -->
+
+		<div class="absolute bottom-12 left-[50%] translate-x-[-50%] flex flex-row gap-2 color-white">
 			{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
 				<button
 					class:bg-white={$debug_item == index}
@@ -86,7 +97,6 @@
 							return
 						}
 						$debug_item = index
-						console.log($debug_item)
 					}}
 				>
 					{tile}
