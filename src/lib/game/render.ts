@@ -1,4 +1,4 @@
-import { Color, type Game, type VineCell } from '.'
+import { Color, type Game, type VineCell, type WatcherCell } from '.'
 
 export function render_board(game: Game) {
 	const gfx = game.engine.gfx
@@ -26,6 +26,26 @@ export function render_board(game: Game) {
 	const blue = new Path2D()
 	const cyan = new Path2D()
 
+	const white = new Path2D()
+
+	function get_path(color: Color): { fg: Path2D, bg: Path2D } {
+		switch (color) {
+			case Color.Green: return { fg: lime, bg: green }
+			case Color.Yellow: return { fg: yellow, bg: orange }
+			case Color.Red: return { fg: red, bg: dark_red }
+			case Color.Blue: return { fg: cyan, bg: blue }
+			default: return { fg: tan, bg: gray }
+		}
+	}
+
+	function get_cell_color(x: number, y: number): number {
+		if (x < 0 || x >= game.width || y < 0 || y >= game.height) return -1
+		const cell = game.grid[x][y]
+		if (!cell) return -1
+		if (cell.id != 'vine') return -1
+		return (cell as VineCell).color
+	}
+
 	for (let x = 0; x < game.width; x++) {
 		for (let y = 0; y < game.height; y++) {
 			const tile = game.grid[x][y]
@@ -41,77 +61,108 @@ export function render_board(game: Game) {
 					gray.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
 					break
 				case 'vine': {
-					let path = tan
-					let path_under = gray
 					const color = (tile as VineCell).color
-					switch (color) {
-						case Color.Green:
-							path = lime
-							path_under = green
-							break
-						case Color.Yellow:
-							path = yellow
-							path_under = orange
-							break
-						case Color.Blue:
-							path = cyan
-							path_under = blue
-							break
-						case Color.Red:
-							path = red
-							path_under = dark_red
-							break
-					}
-					path.moveTo(x + .5, y + .5)
-					path.ellipse(x + .5, y + .5, .25, .25, 0, 0, 2 * Math.PI)
-					// path.roundRect(x + .2, y + .2, .6, .6, 4 / 16)
-					// path.moveTo(x + .2, y + .2)
-					// path.lineTo(x + .8, y + .2)
-					// path.lineTo(x + .8, y + .8)
-					// path.lineTo(x + .2, y + .8)
+					const { fg, bg } = get_path(color)
 
-					function get_vine_color(x: number, y: number): number {
-						if (x < 0 || x >= game.width || y < 0 || y >= game.height) return -1
-						const cell = game.grid[x][y]
-						if (!cell) return -1
-						if (cell.id != 'vine') return -1
-						return (cell as VineCell).color
+					let count = 0
+					if (get_cell_color(x - 1, y) === color) {
+						count++
+						bg.moveTo(x, y + .4)
+						bg.lineTo(x + .5, y + .4)
+						bg.lineTo(x + .5, y + .6)
+						bg.lineTo(x, y + .6)
 					}
 
-					if (get_vine_color(x - 1, y) === color) {
-						path_under.moveTo(x, y + .4)
-						path_under.lineTo(x + .5, y + .4)
-						path_under.lineTo(x + .5, y + .6)
-						path_under.lineTo(x, y + .6)
+					if (get_cell_color(x + 1, y) === color) {
+						count++
+						bg.moveTo(x + 1, y + .4)
+						bg.lineTo(x + .5, y + .4)
+						bg.lineTo(x + .5, y + .6)
+						bg.lineTo(x + 1, y + .6)
 					}
 
-					if (get_vine_color(x + 1, y) === color) {
-						path_under.moveTo(x + 1, y + .4)
-						path_under.lineTo(x + .5, y + .4)
-						path_under.lineTo(x + .5, y + .6)
-						path_under.lineTo(x + 1, y + .6)
+					if (get_cell_color(x, y - 1) === color) {
+						count++
+						bg.moveTo(x + .4, y)
+						bg.lineTo(x + .4, y + .5)
+						bg.lineTo(x + .6, y + .5)
+						bg.lineTo(x + .6, y)
+					}
+					if (get_cell_color(x, y + 1) === color) {
+						count++
+						bg.moveTo(x + .4, y + 1)
+						bg.lineTo(x + .4, y + .5)
+						bg.lineTo(x + .6, y + .5)
+						bg.lineTo(x + .6, y + 1)
 					}
 
-					if (get_vine_color(x, y - 1) === color) {
-						path_under.moveTo(x + .4, y)
-						path_under.lineTo(x + .4, y + .5)
-						path_under.lineTo(x + .6, y + .5)
-						path_under.lineTo(x + .6, y)
+					if (tile.initial) {
+						fg.moveTo(x + .5, y + .5)
+						fg.ellipse(x + .5, y + .5, .35, .35, 0, 0, 2 * Math.PI)
+						continue
 					}
-					if (get_vine_color(x, y + 1) === color) {
-						path_under.moveTo(x + .4, y + 1)
-						path_under.lineTo(x + .4, y + .5)
-						path_under.lineTo(x + .6, y + .5)
-						path_under.lineTo(x + .6, y + 1)
+					if (count > 2) {
+						fg.roundRect(x + .2, y + .2, .6, .6, 2 / 16)
+						continue
 					}
+					fg.moveTo(x + .5, y + .5)
+					fg.ellipse(x + .5, y + .5, .25, .25, 0, 0, 2 * Math.PI)
 				}
 					break
 				case 'water':
 					blue.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
 					break
+				case 'watcher': {
+					const watcher = (tile as WatcherCell)
+					const { fg, bg } = get_path(watcher.color)
+					let color = '#d1b48c'
+					switch (watcher.color) {
+						case Color.Green: color = '#b4ba47'; break
+						case Color.Yellow: color = '#f2b63d'; break
+						case Color.Red: color = '#e34262'; break
+						case Color.Blue: color = '#457cd6'; break
+					}
+					gfx.fillStyle = color
+					gfx.beginPath()
+					gfx.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
+					gfx.fill()
+
+					let count = watcher.amount
+					for (let xx = -1; xx <= 1; xx++) {
+						for (let yy = -1; yy <= 1; yy++) {
+							if (xx === 0 && yy === 0) continue
+							const cell_color = get_cell_color(x + xx, y + yy)
+							if (cell_color < 0) continue
+
+							if (cell_color == watcher.color) {
+								count -= 1
+							}
+							else {
+								count += 1
+							}
+						}
+					}
+
+					gfx.textAlign = 'center'
+					gfx.textBaseline = 'middle'
+					gfx.fontKerning = 'none'
+					gfx.font = `bold .5px ${getComputedStyle(gfx.canvas).fontFamily}`
+					gfx.fillStyle = 'white'
+					gfx.fillText(count.toString(), x + .5, y + .4)
+
+					// for (let index = 0; index < count; index++) {
+					// 	white.moveTo(x + .5, y + .5)
+					// 	let value = (index * 2) / (watcher.amount * 2) * Math.PI * 2
+					// 	white.lineTo(x + .5 + Math.cos(value) / 3, y + .5 + Math.sin(value) / 3)
+					// 	value = (index * 2 + 1) / (watcher.amount * 2) * Math.PI * 2
+					// 	white.lineTo(x + .5 + Math.cos(value) / 3, y + .5 + Math.sin(value) / 3)
+					// }
+				}
+					break
 				case undefined:
 					gfx.fillStyle = 'red'
 					gfx.fillRect(x, y, 1, 1)
+					break
 				default:
 					gfx.fillStyle = 'magenta'
 					gfx.fillRect(x, y, 1, 1)
@@ -135,4 +186,5 @@ export function render_board(game: Game) {
 
 	gfx.fillStyle = '#4b3b9c'; gfx.fill(blue)
 	gfx.fillStyle = '#457cd6'; gfx.fill(cyan)
+	gfx.fillStyle = '#fff4e0'; gfx.fill(white)
 }

@@ -19,7 +19,8 @@ export default defineConfig({
 		presetWebFonts({
 			provider: 'fontshare',
 			fonts: {
-				sans: ['Nippo']
+				body: ['General Sans'],
+				display: ['Teko', 'Tanker', 'Nippo'],
 			}
 		}),
 	],

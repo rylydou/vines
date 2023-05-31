@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
-	import { Tile, type Game, create_grid, type Cell } from '$lib/game'
+	import { Tile, type Game, create_grid, type Cell, cells } from '$lib/game'
 	import { create_game } from '$lib/game/game'
 	import { getAllContexts, onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'
@@ -13,7 +13,7 @@
 	let game: Game
 
 	let editor_active: Writable<boolean>
-	let editor_item: Writable<number>
+	let editor_item: Writable<string | null>
 	let water: Writable<number>
 
 	onMount(() => {
@@ -75,7 +75,7 @@
 	<canvas
 		bind:this={canvas}
 		use:fill_canvas={() => engine.render()}
-		class="w-full h-full image-render-pixel"
+		class="w-full h-full font-display"
 	/>
 
 	{#if game}
@@ -115,19 +115,19 @@
 				</div>
 
 				<div class="flex flex-row">
-					{#each Object.values(Tile).filter((x) => typeof x == 'string') as tile, index (tile)}
+					{#each cells as cell, index (index)}
 						<button
 							class="px-1.5 py-0.5"
-							class:solid-inv={$editor_item == index}
+							class:solid-inv={$editor_item == cell}
 							on:click={() => {
-								if ($editor_item == index) {
-									$editor_item = -1
+								if ($editor_item == cell) {
+									$editor_item = null
 									return
 								}
-								$editor_item = index
+								$editor_item = cell
 							}}
 						>
-							{tile}
+							{cell}
 						</button>
 					{/each}
 				</div>

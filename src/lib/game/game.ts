@@ -1,11 +1,11 @@
 import type { Engine } from '$lib/engine'
 import { get, writable, type Writable } from 'svelte/store'
-import { create_grid, colors, render_board, type Cell, create_grid_ex, type VineCell, Color } from '.'
+import { create_grid, colors, render_board, type Cell, create_grid_ex, type VineCell, Color, type WatcherCell, Criteria } from '.'
 
 export interface Game {
 	engine: Engine
 	editor_active: Writable<boolean>
-	editor_item: Writable<number>
+	editor_item: Writable<string | null>
 	grid: (Cell | null)[][]
 	width: number
 	height: number
@@ -18,18 +18,23 @@ export function create_game(engine: Engine): Game {
 	let game = {
 		engine,
 		editor_active: writable(false),
-		editor_item: writable(-1),
+		editor_item: writable(null),
 		width: 8,
 		height: 6,
 		grid: create_grid<Cell | null>(8, 6, null),
-		water: writable(99),
+		water: writable(50),
 		get_transform: function (gfx) {
-			const h_scale = gfx.canvas.width / (game.width + 1)
-			const v_scale = gfx.canvas.height / (game.height + 2)
-			const scale = Math.min(h_scale, v_scale)
+			let pl = 0
+			let pr = get(game.editor_active) ? 400 * window.devicePixelRatio : 0
+			let pt = 0
+			let pb = 0
 
-			const x = get(this.editor_active) ? 0 : (gfx.canvas.width - game.width * scale) / 2
-			const y = (gfx.canvas.height - game.height * scale) / 2 + .5 * scale
+			const h_scale = (gfx.canvas.width - pl - pr) / (game.width + 1)
+			const v_scale = (gfx.canvas.height - pt - pb) / (game.height + 2)
+			let scale = Math.min(h_scale, v_scale)
+
+			let x = (gfx.canvas.width - pr - game.width * scale) / 2
+			let y = (gfx.canvas.height - pb - game.height * scale) / 2 + .5 * scale
 
 			return {
 				translation: { x, y },
@@ -46,10 +51,11 @@ export function create_game(engine: Engine): Game {
 		},
 	} as Game
 
-	game.grid[2][2] = { id: 'vine', color: Color.Green } as VineCell
-	game.grid[4][2] = { id: 'vine', color: Color.Yellow } as VineCell
-	game.grid[2][4] = { id: 'vine', color: Color.Blue } as VineCell
-	game.grid[4][4] = { id: 'vine', color: Color.Red } as VineCell
+	game.grid[0][0] = { id: 'vine', color: Color.Green, initial: true } as VineCell
+	game.grid[2][1] = { id: 'vine', color: Color.Yellow, initial: true } as VineCell
+	game.grid[2][3] = { id: 'vine', color: Color.Blue, initial: true } as VineCell
+	game.grid[1][3] = { id: 'vine', color: Color.Red, initial: true } as VineCell
+	game.grid[4][2] = { id: 'watcher', color: Color.Red, amount: 4, criteria: Criteria.Exactly } as WatcherCell
 
 	engine.load_content = async function () {
 		await document.onload
@@ -61,10 +67,10 @@ export function create_game(engine: Engine): Game {
 		const gfx = this.gfx
 		gfx.textAlign = 'center'
 		gfx.textBaseline = 'bottom'
-		gfx.font = `bold 1px "Nippo"`
-		gfx.fillStyle = '#457cd6'
+		gfx.font = `bold 1px ${getComputedStyle(gfx.canvas).fontFamily}`
 		const text = get(game.water).toString()
-		gfx.fillText(text, game.width / 2, 1 / 16)
+		// gfx.fillStyle = '#449489'
+		// gfx.fillText(text, game.width / 2, 1 / 16)
 		gfx.fillStyle = '#fff4e0'
 		gfx.fillText(text, game.width / 2, 0)
 	}
@@ -86,10 +92,14 @@ export function create_game(engine: Engine): Game {
 			}
 		})
 
-		const cell = game.grid[ix][iy]
+		const is_in_bounds = ix >= 0 && ix < game.width && iy >= 0 && iy < game.height
 
-		if (cell && cell.id === 'vine') {
-			vine_color = (cell as VineCell).color
+		if (is_in_bounds) {
+			const cell = game.grid[ix][iy]
+
+			if (cell && cell.id === 'vine') {
+				vine_color = (cell as VineCell).color
+			}
 		}
 
 		if (get(game.editor_active)) {
@@ -117,9 +127,14 @@ export function create_game(engine: Engine): Game {
 	function place_tile(x: number, y: number) {
 		if (x < 0 || x >= game.width || y < 0 || y >= game.height) return
 
-		const debug_item = get(game.editor_item)
-		if (debug_item >= 0) {
-			// set_tile(x, y, debug_item as Cell)
+		if (get(game.editor_active)) {
+			const debug_item = get(game.editor_item)
+			if (debug_item) {
+				set_tile(x, y, { id: debug_item })
+			}
+			else {
+				set_tile(x, y, null)
+			}
 			return
 		}
 
@@ -137,7 +152,7 @@ export function create_game(engine: Engine): Game {
 		}
 	}
 
-	function set_tile(x: number, y: number, tile: Cell) {
+	function set_tile(x: number, y: number, tile: Cell | null) {
 		const cell = game.grid[x][y]
 		if (cell == tile) return
 		game.grid[x][y] = tile

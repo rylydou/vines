@@ -14,6 +14,6 @@
 	:global(body) {
 		height: 100dvh;
 		background-color: black;
-		@apply font-sans;
+		@apply font-body font-medium;
 	}
 </style>

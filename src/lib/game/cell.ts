@@ -1,7 +1,14 @@
 import type { Color } from '.'
 
+export const cells = [
+	'wall',
+	'vine',
+	'watcher',
+]
+
 export interface Cell {
 	id: string
+	initial?: boolean
 }
 
 export interface WallCell extends Cell {
