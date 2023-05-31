@@ -4,6 +4,7 @@ export const cells = [
 	'wall',
 	'vine',
 	'watcher',
+	'water',
 ]
 
 export interface Cell {
@@ -25,6 +26,11 @@ export interface WatcherCell extends Cell {
 	criteria: Criteria
 	amount: number
 	color: Color
+}
+
+export interface WaterCell extends Cell {
+	id: 'water'
+	amount: number
 }
 
 export enum Criteria {

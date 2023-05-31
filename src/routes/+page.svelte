@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
-	import { Tile, type Game, create_grid, type Cell, cells } from '$lib/game'
+	import { type Game, create_grid, type Cell, cells } from '$lib/game'
 	import { create_game } from '$lib/game/game'
 	import { getAllContexts, onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'

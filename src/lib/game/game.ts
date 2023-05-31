@@ -1,6 +1,6 @@
 import type { Engine } from '$lib/engine'
 import { get, writable, type Writable } from 'svelte/store'
-import { create_grid, colors, render_board, type Cell, create_grid_ex, type VineCell, Color, type WatcherCell, Criteria } from '.'
+import { create_grid, colors, render_board, type Cell, create_grid_ex, type VineCell, Color, type WatcherCell, Criteria, type WaterCell } from '.'
 
 export interface Game {
 	engine: Engine
@@ -56,6 +56,7 @@ export function create_game(engine: Engine): Game {
 	game.grid[2][3] = { id: 'vine', color: Color.Blue, initial: true } as VineCell
 	game.grid[1][3] = { id: 'vine', color: Color.Red, initial: true } as VineCell
 	game.grid[4][2] = { id: 'watcher', color: Color.Red, amount: 4, criteria: Criteria.Exactly } as WatcherCell
+	game.grid[8][6] = { id: 'water', amount: 10 } as WaterCell
 
 	engine.load_content = async function () {
 		await document.onload
@@ -139,7 +140,14 @@ export function create_game(engine: Engine): Game {
 		}
 
 		const cell = game.grid[x][y]
-		if (cell) return
+		if (cell) {
+			switch (cell.id) {
+				case 'water':
+					game.water.update(x => x + (cell as WaterCell).amount)
+					break
+				default: return
+			}
+		}
 
 		const connected = game.get_connected(x, y)
 		const vines = connected.filter(t => t && t.id === 'vine' && (t as VineCell).color === vine_color).length

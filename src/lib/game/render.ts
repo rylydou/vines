@@ -110,22 +110,11 @@ export function render_board(game: Game) {
 				}
 					break
 				case 'water':
-					blue.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
+					white.moveTo(x + .5, y + .5)
+					white.ellipse(x + .5, y + .5, .25, .25, 0, 0, 7)
 					break
 				case 'watcher': {
 					const watcher = (tile as WatcherCell)
-					const { fg, bg } = get_path(watcher.color)
-					let color = '#d1b48c'
-					switch (watcher.color) {
-						case Color.Green: color = '#b4ba47'; break
-						case Color.Yellow: color = '#f2b63d'; break
-						case Color.Red: color = '#e34262'; break
-						case Color.Blue: color = '#457cd6'; break
-					}
-					gfx.fillStyle = color
-					gfx.beginPath()
-					gfx.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
-					gfx.fill()
 
 					let count = watcher.amount
 					for (let xx = -1; xx <= 1; xx++) {
@@ -143,12 +132,38 @@ export function render_board(game: Game) {
 						}
 					}
 
+					const { fg, bg } = get_path(watcher.color)
+					let color = '#d1b48c'
+					switch (watcher.color) {
+						case Color.Green: color = '#b4ba47'; break
+						case Color.Yellow: color = '#f2b63d'; break
+						case Color.Red: color = '#e34262'; break
+						case Color.Blue: color = '#457cd6'; break
+					}
+
+					gfx.fillStyle = color
+					gfx.strokeStyle = color
+					gfx.beginPath()
+					gfx.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
+
+					if (count == 0) {
+						// gfx.fill()
+						gfx.stroke()
+					}
+					else {
+						gfx.lineWidth = 2 / 16
+						// gfx.stroke()
+					}
+
 					gfx.textAlign = 'center'
 					gfx.textBaseline = 'middle'
 					gfx.fontKerning = 'none'
 					gfx.font = `bold .5px ${getComputedStyle(gfx.canvas).fontFamily}`
-					gfx.fillStyle = 'white'
-					gfx.fillText(count.toString(), x + .5, y + .4)
+					// gfx.fillStyle = 'white'
+					if (isNaN(count))
+						gfx.fillText(':(', x + .5, y + .4)
+					else
+						gfx.fillText(count.toString(), x + .5, y + .4)
 
 					// for (let index = 0; index < count; index++) {
 					// 	white.moveTo(x + .5, y + .5)
