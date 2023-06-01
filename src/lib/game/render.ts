@@ -144,15 +144,15 @@ export function render_board(game: Game) {
 					gfx.fillStyle = color
 					gfx.strokeStyle = color
 					gfx.beginPath()
-					gfx.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
 
 					if (count == 0) {
-						// gfx.fill()
-						gfx.stroke()
+						gfx.roundRect(x + 1 / 16, y + 1 / 16, 14 / 16, 14 / 16, 2 / 16)
+						gfx.fill()
 					}
 					else {
+						gfx.roundRect(x + 2 / 16, y + 2 / 16, 12 / 16, 12 / 16, 1 / 16)
 						gfx.lineWidth = 2 / 16
-						// gfx.stroke()
+						gfx.stroke()
 					}
 
 					gfx.textAlign = 'center'

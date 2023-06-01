@@ -56,7 +56,7 @@ export function create_game(engine: Engine): Game {
 	game.grid[2][3] = { id: 'vine', color: Color.Blue, initial: true } as VineCell
 	game.grid[1][3] = { id: 'vine', color: Color.Red, initial: true } as VineCell
 	game.grid[4][2] = { id: 'watcher', color: Color.Red, amount: 4, criteria: Criteria.Exactly } as WatcherCell
-	game.grid[8][6] = { id: 'water', amount: 10 } as WaterCell
+	game.grid[7][5] = { id: 'water', amount: 10 } as WaterCell
 
 	engine.load_content = async function () {
 		await document.onload
