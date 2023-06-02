@@ -62,8 +62,22 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 			console.timeEnd('loaded game')
 
 			this.is_ready = true
+
+			console.log('starting...')
 			this.start()
+			console.log('initial render...')
 			this.render()
+			console.log('initial render successful!')
+
+			let last_dpr = window.devicePixelRatio
+			window.addEventListener('resize', () => {
+				const dpr = window.devicePixelRatio
+				if (last_dpr != dpr) {
+					last_dpr = dpr
+					this.render()
+				}
+			})
+			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', this.render)
 		},
 		load_content: async function (): Promise<void> { },
 		start: function () { },

@@ -10,8 +10,9 @@ export const colors = {
 
 	tan: '#d1b48c',
 	brown: '#9c656c',
-	purple: '#57253b',
-	black: '#2c1b2e'
+	gray: '#57253b',
+	black: '#2c1b2e',
+	white: '#fff4e0',
 }
 
 export enum Color {
@@ -21,3 +22,11 @@ export enum Color {
 	Blue,
 	Red,
 }
+
+export const color_palettes = [
+	{ fg: colors.tan, bg: colors.gray },
+	{ fg: colors.lime, bg: colors.green },
+	{ fg: colors.yellow, bg: colors.orange },
+	{ fg: colors.cyan, bg: colors.blue },
+	{ fg: colors.red, bg: colors.dark_red },
+]

@@ -6,6 +6,7 @@ export interface Game {
 	engine: Engine
 	editor_active: Writable<boolean>
 	editor_item: Writable<string | null>
+	editor_color: Writable<number>
 	grid: (Cell | null)[][]
 	width: number
 	height: number
@@ -19,6 +20,7 @@ export function create_game(engine: Engine): Game {
 		engine,
 		editor_active: writable(false),
 		editor_item: writable(null),
+		editor_color: writable(0),
 		width: 8,
 		height: 6,
 		grid: create_grid<Cell | null>(8, 6, null),
@@ -30,11 +32,11 @@ export function create_game(engine: Engine): Game {
 			let pb = 0
 
 			const h_scale = (gfx.canvas.width - pl - pr) / (game.width + 1)
-			const v_scale = (gfx.canvas.height - pt - pb) / (game.height + 2)
+			const v_scale = (gfx.canvas.height - pt - pb) / (game.height + 1)
 			let scale = Math.min(h_scale, v_scale)
 
 			let x = (gfx.canvas.width - pr - game.width * scale) / 2
-			let y = (gfx.canvas.height - pb - game.height * scale) / 2 + .5 * scale
+			let y = (gfx.canvas.height - pb - game.height * scale) / 2 // + .5 * scale
 
 			return {
 				translation: { x, y },
@@ -56,7 +58,6 @@ export function create_game(engine: Engine): Game {
 	game.grid[2][3] = { id: 'vine', color: Color.Blue, initial: true } as VineCell
 	game.grid[1][3] = { id: 'vine', color: Color.Red, initial: true } as VineCell
 	game.grid[4][2] = { id: 'watcher', color: Color.Red, amount: 4, criteria: Criteria.Exactly } as WatcherCell
-	game.grid[7][5] = { id: 'water', amount: 10 } as WaterCell
 
 	engine.load_content = async function () {
 		await document.onload
@@ -65,6 +66,7 @@ export function create_game(engine: Engine): Game {
 
 	engine.on_render = function () {
 		render_board(game)
+		return
 		const gfx = this.gfx
 		gfx.textAlign = 'center'
 		gfx.textBaseline = 'bottom'
@@ -77,7 +79,52 @@ export function create_game(engine: Engine): Game {
 	}
 
 	let down = false
-	let vine_color: Color | null = Color.None
+
+	let vine_x = 0
+	let vine_y = 0
+	let vine_color = Color.None
+	let vine_erasable = false
+
+	function start_draw(x: number, y: number) {
+		const cell = game.grid[x][y]
+		if (!cell) return
+		if (cell.id != 'vine') return
+		const vine = (cell as VineCell)
+
+		vine_x = x
+		vine_y = y
+		vine_color = vine.color
+
+		const connected = game.get_connected(x, y)
+		const connect_count = connected.filter(t => t && t.id == 'vine' && (t as VineCell).color == vine_color)
+		vine_erasable = connect_count.length == 1 && !vine.initial
+	}
+
+	function draw(x: number, y: number) {
+		if (vine_x == x && vine_y == y) return
+
+		const cell = game.grid[x][y]
+		if (!cell) {
+			const connected = game.get_connected(x, y)
+			const connect_count = connected.filter(t => t && t.id == 'vine' && (t as VineCell).color == vine_color)
+			if (connect_count.length != 1) return
+			set_tile(x, y, { id: 'vine', color: vine_color } as VineCell)
+			start_draw(x, y)
+			return
+		}
+		if (cell.id != 'vine') return
+		const vine = (cell as VineCell)
+
+		if (vine.color != vine_color) return
+		// Erase previous vine if it is the end
+		if (vine_erasable) {
+			console.log('erase')
+
+			set_tile(vine_x, vine_y, null)
+			start_draw(x, y)
+		}
+	}
+
 	engine.canvas.addEventListener('pointerdown', (ev) => {
 		const { x, y } = engine.transform_client_point(ev.clientX, ev.clientY)
 		const transform = game.get_transform(engine.gfx)
@@ -88,23 +135,20 @@ export function create_game(engine: Engine): Game {
 
 		down = true
 		document.addEventListener('pointerup', (e) => {
-			if (ev.pointerId === e.pointerId) {
+			if (ev.pointerId == e.pointerId) {
 				down = false
 			}
 		})
 
 		const is_in_bounds = ix >= 0 && ix < game.width && iy >= 0 && iy < game.height
 
-		if (is_in_bounds) {
-			const cell = game.grid[ix][iy]
-
-			if (cell && cell.id === 'vine') {
-				vine_color = (cell as VineCell).color
-			}
-		}
-
 		if (get(game.editor_active)) {
 			place_tile(ix, iy)
+		}
+		else {
+			if (is_in_bounds) {
+				start_draw(ix, iy)
+			}
 		}
 	})
 
@@ -122,42 +166,30 @@ export function create_game(engine: Engine): Game {
 
 		if (!down) return
 
-		place_tile(ix, iy)
+		if (get(game.editor_active)) {
+			place_tile(ix, iy)
+		}
+		else {
+			if (is_in_bounds)
+				draw(ix, iy)
+		}
 	})
 
 	function place_tile(x: number, y: number) {
-		if (x < 0 || x >= game.width || y < 0 || y >= game.height) return
-
-		if (get(game.editor_active)) {
-			const debug_item = get(game.editor_item)
-			if (debug_item) {
-				set_tile(x, y, { id: debug_item })
+		const debug_item = get(game.editor_item)
+		if (debug_item) {
+			let cell = { id: debug_item }
+			if (debug_item != 'wall') {
+				// @ts-ignore
+				cell.color = game.editor_color
 			}
-			else {
-				set_tile(x, y, null)
-			}
-			return
+
+			set_tile(x, y, cell)
 		}
-
-		const cell = game.grid[x][y]
-		if (cell) {
-			switch (cell.id) {
-				case 'water':
-					game.water.update(x => x + (cell as WaterCell).amount)
-					break
-				default: return
-			}
+		else {
+			set_tile(x, y, null)
 		}
-
-		const connected = game.get_connected(x, y)
-		const vines = connected.filter(t => t && t.id === 'vine' && (t as VineCell).color === vine_color).length
-
-		if (vines == 1) {
-			if (get(game.water) <= 0) return
-			game.water.update(x => x - 1)
-
-			set_tile(x, y, { id: 'vine', color: vine_color } as VineCell)
-		}
+		return
 	}
 
 	function set_tile(x: number, y: number, tile: Cell | null) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
-	import { type Game, create_grid, type Cell, cells } from '$lib/game'
+	import { type Game, create_grid, type Cell, cells, color_palettes } from '$lib/game'
 	import { create_game } from '$lib/game/game'
 	import { getAllContexts, onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'
@@ -14,14 +14,14 @@
 
 	let editor_active: Writable<boolean>
 	let editor_item: Writable<string | null>
-	let water: Writable<number>
+	let editor_color: Writable<number>
 
 	onMount(() => {
 		engine = create_engine(canvas, { show_update_spinner: true })
 		game = create_game(engine)
 		editor_item = game.editor_item
-		water = game.water
 		editor_active = game.editor_active
+		editor_color = game.editor_color
 		engine.initialize()
 	})
 
@@ -132,17 +132,19 @@
 					{/each}
 				</div>
 
-				<label class="mt-6">
-					<span>Starting water</span>
-					<input
-						class="w-full"
-						type="text"
-						inputmode="numeric"
-						pattern="\d*"
-						bind:value={$water}
-						on:change={() => engine.render()}
-					/>
-				</label>
+				<div class="my-2 w-full h-10 flex flex-row justify-stretch gap-2">
+					{#each color_palettes as palette, index (index)}
+						<button
+							on:click={() => ($editor_color = index)}
+							class="w-full p-0 justify-center items-center color-black"
+							style="background-color: {palette.fg};"
+						>
+							{#if index == $editor_color}
+								<div class="i-pixelarticons-check min-w-6 min-h-6" />
+							{/if}
+						</button>
+					{/each}
+				</div>
 			</div>
 		{/if}
 	{/if}

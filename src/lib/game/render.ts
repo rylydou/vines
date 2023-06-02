@@ -1,4 +1,4 @@
-import { Color, type Game, type VineCell, type WatcherCell } from '.'
+import { Color, colors, type Game, type VineCell, type WatcherCell } from '.'
 
 export function render_board(game: Game) {
 	const gfx = game.engine.gfx
@@ -10,8 +10,8 @@ export function render_board(game: Game) {
 	gfx.translate(transform.translation.x, transform.translation.y)
 	gfx.scale(transform.scale, transform.scale)
 
-	const dark_gray = new Path2D()
 	const gray = new Path2D()
+	const brown = new Path2D()
 	const tan = new Path2D()
 
 	const green = new Path2D()
@@ -34,7 +34,7 @@ export function render_board(game: Game) {
 			case Color.Yellow: return { fg: yellow, bg: orange }
 			case Color.Red: return { fg: red, bg: dark_red }
 			case Color.Blue: return { fg: cyan, bg: blue }
-			default: return { fg: tan, bg: gray }
+			default: return { fg: tan, bg: brown }
 		}
 	}
 
@@ -51,14 +51,14 @@ export function render_board(game: Game) {
 			const tile = game.grid[x][y]
 
 			if (!tile) {
-				dark_gray.moveTo(x + .5, y + .5)
-				dark_gray.ellipse(x + .5, y + .5, 1 / 16, 1 / 16, 0, 0, 2 * Math.PI)
+				gray.moveTo(x + .5, y + .5)
+				gray.ellipse(x + .5, y + .5, 1 / 16, 1 / 16, 0, 0, 2 * Math.PI)
 				continue
 			}
 
 			switch (tile.id) {
 				case 'wall':
-					gray.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
+					brown.roundRect(x + .1, y + .1, .8, .8, 2 / 16)
 					break
 				case 'vine': {
 					const color = (tile as VineCell).color
@@ -132,13 +132,12 @@ export function render_board(game: Game) {
 						}
 					}
 
-					const { fg, bg } = get_path(watcher.color)
-					let color = '#d1b48c'
+					let color = colors.tan
 					switch (watcher.color) {
-						case Color.Green: color = '#b4ba47'; break
-						case Color.Yellow: color = '#f2b63d'; break
-						case Color.Red: color = '#e34262'; break
-						case Color.Blue: color = '#457cd6'; break
+						case Color.Green: color = colors.green; break
+						case Color.Yellow: color = colors.yellow; break
+						case Color.Red: color = colors.red; break
+						case Color.Blue: color = colors.cyan; break
 					}
 
 					gfx.fillStyle = color
@@ -186,20 +185,20 @@ export function render_board(game: Game) {
 		}
 	}
 
-	gfx.fillStyle = '#57253b'; gfx.fill(dark_gray)
-	gfx.fillStyle = '#9c656c'; gfx.fill(gray)
-	gfx.fillStyle = '#d1b48c'; gfx.fill(tan)
+	gfx.fillStyle = colors.gray; gfx.fill(gray)
+	gfx.fillStyle = colors.brown; gfx.fill(brown)
+	gfx.fillStyle = colors.tan; gfx.fill(tan)
 
-	gfx.fillStyle = '#6d8c32'; gfx.fill(green)
-	gfx.fillStyle = '#b4ba47'; gfx.fill(lime)
+	gfx.fillStyle = colors.green; gfx.fill(green)
+	gfx.fillStyle = colors.lime; gfx.fill(lime)
 
-	gfx.fillStyle = '#d46e33'; gfx.fill(orange)
-	gfx.fillStyle = '#f2b63d'; gfx.fill(yellow)
+	gfx.fillStyle = colors.orange; gfx.fill(orange)
+	gfx.fillStyle = colors.yellow; gfx.fill(yellow)
 
-	gfx.fillStyle = '#94353d'; gfx.fill(dark_red)
-	gfx.fillStyle = '#e34262'; gfx.fill(red)
+	gfx.fillStyle = colors.dark_red; gfx.fill(dark_red)
+	gfx.fillStyle = colors.red; gfx.fill(red)
 
-	gfx.fillStyle = '#4b3b9c'; gfx.fill(blue)
-	gfx.fillStyle = '#457cd6'; gfx.fill(cyan)
-	gfx.fillStyle = '#fff4e0'; gfx.fill(white)
+	gfx.fillStyle = colors.blue; gfx.fill(blue)
+	gfx.fillStyle = colors.cyan; gfx.fill(cyan)
+	gfx.fillStyle = colors.white; gfx.fill(white)
 }

@@ -4,7 +4,7 @@ export const cells = [
 	'wall',
 	'vine',
 	'watcher',
-	'water',
+	// 'water',
 ]
 
 export interface Cell {
