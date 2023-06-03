@@ -28,6 +28,8 @@ export function render_board(game: Game) {
 
 	const white = new Path2D()
 
+	const black = new Path2D()
+
 	function get_path(color: Color): { fg: Path2D, bg: Path2D } {
 		switch (color) {
 			case Color.Green: return { fg: lime, bg: green }
@@ -154,6 +156,11 @@ export function render_board(game: Game) {
 						gfx.stroke()
 					}
 
+					if (count == 0) {
+						console.log('black')
+						gfx.fillStyle = colors.black
+					}
+
 					gfx.textAlign = 'center'
 					gfx.textBaseline = 'middle'
 					gfx.fontKerning = 'none'
@@ -200,5 +207,7 @@ export function render_board(game: Game) {
 
 	gfx.fillStyle = colors.blue; gfx.fill(blue)
 	gfx.fillStyle = colors.cyan; gfx.fill(cyan)
+
 	gfx.fillStyle = colors.white; gfx.fill(white)
+	gfx.fillStyle = colors.black; gfx.fill(black)
 }
