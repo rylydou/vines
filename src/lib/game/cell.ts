@@ -7,6 +7,15 @@ export const cells = [
 	// 'water',
 ]
 
+export const cells_with_color = [
+	'vine',
+	'watcher',
+]
+
+export const cells_with_amount = [
+	'watcher',
+]
+
 export interface Cell {
 	id: string
 	initial?: boolean
@@ -23,7 +32,6 @@ export interface VineCell extends Cell {
 
 export interface WatcherCell extends Cell {
 	id: 'watcher'
-	criteria: Criteria
 	amount: number
 	color: Color
 }
@@ -31,10 +39,4 @@ export interface WatcherCell extends Cell {
 export interface WaterCell extends Cell {
 	id: 'water'
 	amount: number
-}
-
-export enum Criteria {
-	Exactly,
-	MoreThan,
-	LessThan,
 }

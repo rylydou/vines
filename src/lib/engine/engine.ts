@@ -46,7 +46,7 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 
 	return {
 		is_ready: false,
-		show_update_spinner: config.show_update_spinner || false,
+		show_update_spinner: config.show_update_spinner || import.meta.env.DEV,
 
 		canvas,
 		gfx,

@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
-	import { type Game, create_grid, type Cell, cells, color_palettes } from '$lib/game'
+	import {
+		type Game,
+		create_grid,
+		type Cell,
+		cells,
+		color_palettes,
+		cells_with_color,
+		cells_with_amount,
+	} from '$lib/game'
 	import { create_game } from '$lib/game/game'
 	import { getAllContexts, onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'
@@ -15,13 +23,15 @@
 	let editor_active: Writable<boolean>
 	let editor_item: Writable<string | null>
 	let editor_color: Writable<number>
+	let editor_amount: Writable<number>
 
 	onMount(() => {
-		engine = create_engine(canvas, { show_update_spinner: true })
+		engine = create_engine(canvas, {})
 		game = create_game(engine)
 		editor_item = game.editor_item
 		editor_active = game.editor_active
 		editor_color = game.editor_color
+		editor_amount = game.editor_amount
 		engine.initialize()
 	})
 
@@ -132,18 +142,38 @@
 					{/each}
 				</div>
 
-				<div class="my-2 w-full h-10 flex flex-row justify-stretch gap-2">
-					{#each color_palettes as palette, index (index)}
-						<button
-							on:click={() => ($editor_color = index)}
-							class="w-full p-0 justify-center items-center color-black"
-							style="background-color: {palette.fg};"
-						>
-							{#if index == $editor_color}
-								<div class="i-pixelarticons-check min-w-6 min-h-6" />
-							{/if}
-						</button>
-					{/each}
+				<div class="my-2 flex flex-col gap-2">
+					{#if cells_with_color.indexOf($editor_item || '') >= 0}
+						<div class="w-full h-10 flex flex-row justify-stretch gap-2">
+							{#each color_palettes as palette, index (index)}
+								<button
+									on:click={() => ($editor_color = index)}
+									class="w-full p-0 justify-center items-center color-black"
+									style="background-color: {palette.fg};"
+								>
+									{#if index == $editor_color}
+										<div class="i-pixelarticons-check min-w-6 min-h-6" />
+									{:else}
+										{palette.char}
+									{/if}
+								</button>
+							{/each}
+						</div>
+					{/if}
+					{#if cells_with_amount.indexOf($editor_item || '') >= 0}
+						<label>
+							<span>Amount</span>
+							<div class="flex flex-row">
+								<input class="flex-grow w-0 min-w-0" type="number" bind:value={$editor_amount} />
+								<button class="p-2 ml-2" on:click={() => $editor_amount++}>
+									<div class="i-pixelarticons-plus min-w-6 min-h-6" />
+								</button>
+								<button class="p-2" on:click={() => $editor_amount--}>
+									<div class="i-pixelarticons-minus min-w-6 min-h-6" />
+								</button>
+							</div>
+						</label>
+					{/if}
 				</div>
 			</div>
 		{/if}

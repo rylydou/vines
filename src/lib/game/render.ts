@@ -134,7 +134,7 @@ export function render_board(game: Game) {
 
 					let color = colors.tan
 					switch (watcher.color) {
-						case Color.Green: color = colors.green; break
+						case Color.Green: color = colors.lime; break
 						case Color.Yellow: color = colors.yellow; break
 						case Color.Red: color = colors.red; break
 						case Color.Blue: color = colors.cyan; break

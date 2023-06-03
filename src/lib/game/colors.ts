@@ -24,9 +24,9 @@ export enum Color {
 }
 
 export const color_palettes = [
-	{ fg: colors.tan, bg: colors.gray },
-	{ fg: colors.lime, bg: colors.green },
-	{ fg: colors.yellow, bg: colors.orange },
-	{ fg: colors.cyan, bg: colors.blue },
-	{ fg: colors.red, bg: colors.dark_red },
+	{ fg: colors.tan, bg: colors.gray, char: 'W', },
+	{ fg: colors.lime, bg: colors.green, char: 'G', },
+	{ fg: colors.yellow, bg: colors.orange, char: 'Y', },
+	{ fg: colors.cyan, bg: colors.blue, char: 'B', },
+	{ fg: colors.red, bg: colors.dark_red, char: 'R', },
 ]

@@ -20,7 +20,7 @@ export default defineConfig({
 			provider: 'fontshare',
 			fonts: {
 				body: ['General Sans'],
-				display: ['Teko', 'Tanker', 'Nippo'],
+				display: ['Teko'],
 			}
 		}),
 	],
