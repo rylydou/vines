@@ -1,5 +1,5 @@
 button {
-	@apply flex flex-row gap-2 px-4 py-2 bg-transparent decoration-2 decoration-offset-2 hover:(underline);
+	@apply flex flex-row justify-center gap-2 px-4 py-2 bg-transparent decoration-2 decoration-offset-2 hover:(underline);
 }
 
 button.solid {
@@ -15,11 +15,11 @@ button.icon {
 }
 
 label {
-	@apply relative mt-2;
+	@apply relative mt-4;
 }
 
-input {
-	@apply px-4 py-2 w-full border border-white border-2 bg-black color-white;
+input, textarea {
+	@apply px-4 py-2 w-full border border-white border-2 bg-black color-white focus:outline-none;
 }
 
 label > span {

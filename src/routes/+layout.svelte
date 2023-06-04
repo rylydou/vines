@@ -13,7 +13,6 @@
 <style lang="postcss">
 	:global(body) {
 		height: 100dvh;
-		background-color: black;
-		@apply font-body font-medium;
+		@apply font-body font-medium select-none bg-black color-white;
 	}
 </style>

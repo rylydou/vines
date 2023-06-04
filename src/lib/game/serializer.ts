@@ -1,3 +1,4 @@
+import { get } from 'svelte/store'
 import type { Game } from '.'
 
 export const FORMAT_VERSION = 1
@@ -19,6 +20,8 @@ export function serialize(game: Game): any {
 		arr: simplified_arr,
 		width: game.width,
 		height: game.height,
+		name: get(game.name),
+		hint: get(game.hint),
 	}
 }
 
@@ -56,6 +59,8 @@ export function deserialize(game: Game, obj: any, format_version?: number, palet
 	game.width = width
 	game.height = height
 	game.grid = grid
+	game.name.set(obj.name || '')
+	game.hint.set(obj.hint || '')
 
 	return true
 }

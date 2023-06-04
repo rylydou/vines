@@ -10,7 +10,7 @@ export interface Game {
 	editor_amount: Writable<number>
 
 	name: Writable<string>
-	tutorial_text: Writable<string>
+	hint: Writable<string>
 	grid: (Cell | null)[][]
 	width: number
 	height: number
@@ -27,7 +27,7 @@ export function create_game(engine: Engine): Game {
 		editor_color: writable(0),
 		editor_amount: writable(0),
 		name: writable(''),
-		tutorial_text: writable(''),
+		hint: writable(''),
 		width: 8,
 		height: 6,
 		grid: create_grid<Cell | null>(8, 6, null),

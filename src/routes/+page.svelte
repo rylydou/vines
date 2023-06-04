@@ -28,7 +28,9 @@
 	let editor_amount: Writable<number>
 
 	let name: Writable<string>
-	let tutorial_text: Writable<string>
+	let hint: Writable<string>
+
+	let meta_page = false
 
 	onMount(() => {
 		engine = create_engine(canvas, {})
@@ -39,7 +41,7 @@
 		editor_amount = game.editor_amount
 
 		name = game.name
-		tutorial_text = game.name
+		hint = game.hint
 
 		engine.initialize()
 	})
@@ -129,6 +131,15 @@
 	/>
 
 	{#if game}
+		{#if $hint}
+			<div
+				class="absolute bottom-12 flex flex-row gap-2 p-2 pr-4 bg-black color-white transition-opacity-1000 hover:opacity-10 hover:transition-opacity-100"
+			>
+				<div class="i-pixelarticons-info-box min-w-6 min-h-6" />
+				{$hint}
+			</div>
+		{/if}
+
 		<div class="absolute top-12 right-12">
 			{#if editor_active}
 				<button
@@ -149,7 +160,7 @@
 
 		{#if $editor_active}
 			<div class="absolute right-12 flex flex-col max-w-sm h-96 p-4 bg-black color-white">
-				<div class="flex flex-row flex-wrap my-4">
+				<div class="flex flex-row flex-wrap gap-2 mb-4">
 					<button class="px-3 py-1" on:click={create}>
 						<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
 						Create
@@ -172,67 +183,82 @@
 					</button>
 				</div>
 
-				<label>
-					<span>Name</span>
-					<input type="text" bind:value={$name} />
-				</label>
-
-				<label>
-					<span>Tutorial Text</span>
-					<input type="text" bind:value={$tutorial_text} />
-				</label>
-
-				<div class="flex flex-row">
-					{#each cells as cell, index (index)}
-						<button
-							class="px-1.5 py-0.5"
-							class:solid-inv={$editor_item == cell}
-							on:click={() => {
-								if ($editor_item == cell) {
-									$editor_item = null
-									return
-								}
-								$editor_item = cell
-							}}
-						>
-							{cell}
-						</button>
-					{/each}
+				<div class="flex flex-row w-full mb-4">
+					<button
+						class="w-full"
+						class:solid-inv={meta_page == false}
+						on:click={() => (meta_page = false)}>Tiles</button
+					>
+					<button
+						class="w-full"
+						class:solid-inv={meta_page == true}
+						on:click={() => (meta_page = true)}>Metadata</button
+					>
 				</div>
 
-				<div class="my-2 flex flex-col gap-2">
-					{#if cells_with_color.indexOf($editor_item || '') >= 0}
-						<div class="w-full h-10 flex flex-row justify-stretch gap-2">
-							{#each color_palettes as palette, index (index)}
-								<button
-									on:click={() => ($editor_color = index)}
-									class="w-full p-0 justify-center items-center color-black"
-									style="background-color: {palette.fg};"
-								>
-									{#if index == $editor_color}
-										<div class="i-pixelarticons-drop-full min-w-6 min-h-6" />
-									{:else}
-										{palette.char}
-									{/if}
-								</button>
-							{/each}
-						</div>
-					{/if}
-					{#if cells_with_amount.indexOf($editor_item || '') >= 0}
-						<label>
-							<span>Amount</span>
-							<div class="flex flex-row">
-								<input class="flex-grow w-0 min-w-0" type="number" bind:value={$editor_amount} />
-								<button class="p-2 ml-2" on:click={() => $editor_amount++}>
-									<div class="i-pixelarticons-plus min-w-6 min-h-6" />
-								</button>
-								<button class="p-2" on:click={() => $editor_amount--}>
-									<div class="i-pixelarticons-minus min-w-6 min-h-6" />
-								</button>
+				{#if meta_page}
+					<label>
+						<span>Name</span>
+						<input type="text" bind:value={$name} />
+					</label>
+
+					<label>
+						<span>Tutorial Text</span>
+						<textarea rows="4" bind:value={$hint} />
+					</label>
+				{:else}
+					<div class="flex flex-row">
+						{#each cells as cell, index (index)}
+							<button
+								class="px-1.5 py-0.5"
+								class:solid-inv={$editor_item == cell}
+								on:click={() => {
+									if ($editor_item == cell) {
+										$editor_item = null
+										return
+									}
+									$editor_item = cell
+								}}
+							>
+								{cell}
+							</button>
+						{/each}
+					</div>
+
+					<div class="my-2 flex flex-col gap-2">
+						{#if cells_with_color.indexOf($editor_item || '') >= 0}
+							<div class="w-full h-10 flex flex-row justify-stretch gap-2">
+								{#each color_palettes as palette, index (index)}
+									<button
+										on:click={() => ($editor_color = index)}
+										class="w-full p-0 justify-center items-center color-black"
+										style="background-color: {palette.fg};"
+									>
+										{#if index == $editor_color}
+											<div class="i-pixelarticons-drop-full min-w-6 min-h-6" />
+										{:else}
+											{palette.char}
+										{/if}
+									</button>
+								{/each}
 							</div>
-						</label>
-					{/if}
-				</div>
+						{/if}
+						{#if cells_with_amount.indexOf($editor_item || '') >= 0}
+							<label>
+								<span>Amount</span>
+								<div class="flex flex-row">
+									<input class="flex-grow w-0 min-w-0" type="number" bind:value={$editor_amount} />
+									<button class="p-2 ml-2" on:click={() => $editor_amount++}>
+										<div class="i-pixelarticons-plus min-w-6 min-h-6" />
+									</button>
+									<button class="p-2" on:click={() => $editor_amount--}>
+										<div class="i-pixelarticons-minus min-w-6 min-h-6" />
+									</button>
+								</div>
+							</label>
+						{/if}
+					</div>
+				{/if}
 			</div>
 		{/if}
 	{/if}
