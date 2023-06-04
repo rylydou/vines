@@ -2,16 +2,18 @@
 	import { fill_canvas } from '$lib/directives/canvas'
 	import { create_engine, type Engine } from '$lib/engine'
 	import {
-		type Game,
-		create_grid,
-		type Cell,
 		cells,
-		color_palettes,
-		cells_with_color,
 		cells_with_amount,
+		cells_with_color,
+		color_palettes,
+		create_game,
+		create_grid,
+		deserialize,
+		serialize,
+		type Cell,
+		type Game,
 	} from '$lib/game'
-	import { create_game } from '$lib/game/game'
-	import { getAllContexts, onMount } from 'svelte'
+	import { onMount } from 'svelte'
 	import type { Writable } from 'svelte/store'
 
 	let canvas: HTMLCanvasElement
@@ -25,6 +27,9 @@
 	let editor_color: Writable<number>
 	let editor_amount: Writable<number>
 
+	let name: Writable<string>
+	let tutorial_text: Writable<string>
+
 	onMount(() => {
 		engine = create_engine(canvas, {})
 		game = create_game(engine)
@@ -32,6 +37,10 @@
 		editor_active = game.editor_active
 		editor_color = game.editor_color
 		editor_amount = game.editor_amount
+
+		name = game.name
+		tutorial_text = game.name
+
 		engine.initialize()
 	})
 
@@ -53,8 +62,16 @@
 	}
 
 	function create() {
-		const width = Number.parseInt(prompt('Level Width', '10') || '10')
-		const height = Number.parseInt(prompt('Level Height', '10') || '10')
+		let input: string | null
+
+		input = prompt('Level Width', '10')
+		if (!input) return
+		const width = Number.parseInt(input)
+
+		input = prompt('Level Width', '10')
+		if (!input) return
+		const height = Number.parseInt(input)
+
 		game.grid = create_grid<Cell | null>(width, height, null)
 		game.width = width
 		game.height = height
@@ -62,23 +79,46 @@
 	}
 
 	const PREFIX = 'puzzle3_'
-	let filename = ''
+	let input = ''
 	function save() {
-		filename = prompt('Filename', filename) || filename
-		if (!filename) return
-		const json = JSON.stringify(game.grid)
-		localStorage.setItem(PREFIX + filename, json)
+		input = prompt('Filename', input) || input
+		if (!input) return
+
+		const obj = serialize(game)
+		const json = JSON.stringify(obj)
+		localStorage.setItem(PREFIX + input, json)
 	}
 
-	function load_from() {
-		filename = prompt('Filename', filename) || filename
-		const json = localStorage.getItem(PREFIX + filename)
+	function load() {
+		input = prompt('Filename or JSON', input) || input
+		input.trim()
+		if (!input) return
+
+		let json: string | null
+		if (input.startsWith('{') && input.endsWith('}')) {
+			json = input
+		} else {
+			json = localStorage.getItem(PREFIX + input.toLowerCase())
+		}
+
 		if (!json) return
-		game.grid = JSON.parse(json)
-		game.width = game.grid.length
-		game.height = game.grid[0].length
+
+		const obj = JSON.parse(json)
+		if (!deserialize(game, obj)) {
+			console.error('An error occurred while deserializing level json!')
+			return
+		}
+
 		engine.render()
 	}
+
+	function copy_json() {
+		const obj = serialize(game)
+		const json = JSON.stringify(obj)
+		navigator.clipboard.writeText(json)
+	}
+
+	function copy_compressed() {}
 </script>
 
 <div bind:this={container} class="bg-[#2c1b2e] w-full h-full grid place-items-center">
@@ -108,8 +148,8 @@
 		</div>
 
 		{#if $editor_active}
-			<div class="absolute right-12 flex flex-col h-96 p-4 bg-black color-white">
-				<div class="flex flex-row mb-2">
+			<div class="absolute right-12 flex flex-col max-w-sm h-96 p-4 bg-black color-white">
+				<div class="flex flex-row flex-wrap my-4">
 					<button class="px-3 py-1" on:click={create}>
 						<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
 						Create
@@ -118,11 +158,29 @@
 						<div class="i-pixelarticons-save min-w-6 min-h-6" />
 						Save
 					</button>
-					<button class="px-3 py-1" on:click={load_from}>
+					<button class="px-3 py-1" on:click={load}>
 						<div class="i-pixelarticons-file min-w-6 min-h-6" />
 						Load
 					</button>
+					<button class="px-3 py-1" on:click={copy_json}>
+						<div class="i-pixelarticons-code min-w-6 min-h-6" />
+						Copy JSON
+					</button>
+					<button class="px-3 py-1" on:click={copy_compressed}>
+						<div class="i-pixelarticons-upload min-w-6 min-h-6" />
+						Share
+					</button>
 				</div>
+
+				<label>
+					<span>Name</span>
+					<input type="text" bind:value={$name} />
+				</label>
+
+				<label>
+					<span>Tutorial Text</span>
+					<input type="text" bind:value={$tutorial_text} />
+				</label>
 
 				<div class="flex flex-row">
 					{#each cells as cell, index (index)}
@@ -152,7 +210,7 @@
 									style="background-color: {palette.fg};"
 								>
 									{#if index == $editor_color}
-										<div class="i-pixelarticons-check min-w-6 min-h-6" />
+										<div class="i-pixelarticons-drop-full min-w-6 min-h-6" />
 									{:else}
 										{palette.char}
 									{/if}

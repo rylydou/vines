@@ -8,9 +8,13 @@ export interface Game {
 	editor_item: Writable<string | null>
 	editor_color: Writable<number>
 	editor_amount: Writable<number>
+
+	name: Writable<string>
+	tutorial_text: Writable<string>
 	grid: (Cell | null)[][]
 	width: number
 	height: number
+
 	get_transform: (gfx: CanvasRenderingContext2D) => { translation: { x: number, y: number }, scale: number }
 	get_connected: (x: number, y: number) => Cell[]
 }
@@ -22,6 +26,8 @@ export function create_game(engine: Engine): Game {
 		editor_item: writable(null),
 		editor_color: writable(0),
 		editor_amount: writable(0),
+		name: writable(''),
+		tutorial_text: writable(''),
 		width: 8,
 		height: 6,
 		grid: create_grid<Cell | null>(8, 6, null),

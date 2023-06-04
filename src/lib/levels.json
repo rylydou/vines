@@ -1,0 +1,13 @@
+{
+	"levels": {
+		"tut1": {}
+	},
+	"worlds": {
+		"tut": [
+			"tut1"
+		]
+	},
+	"world_order": [
+		"tut"
+	]
+}

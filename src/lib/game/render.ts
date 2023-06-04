@@ -157,7 +157,6 @@ export function render_board(game: Game) {
 					}
 
 					if (count == 0) {
-						console.log('black')
 						gfx.fillStyle = colors.black
 					}
 
