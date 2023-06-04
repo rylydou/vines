@@ -140,7 +140,7 @@ export function create_game(engine: Engine): Game {
 			if (ev.pointerId == e.pointerId) {
 				down = false
 			}
-		})
+		}, { once: true })
 
 		const is_in_bounds = ix >= 0 && ix < game.width && iy >= 0 && iy < game.height
 		if (!is_in_bounds) return

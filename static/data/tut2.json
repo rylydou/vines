@@ -1,0 +1,112 @@
+{
+	"___VERSION___": 1,
+	"_PALETTE_": 1,
+	"arr": [
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "vine",
+			"color": 1
+		},
+		null,
+		null,
+		null,
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		null,
+		null,
+		null,
+		{
+			"id": "vine",
+			"color": 2
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		},
+		{
+			"id": "wall"
+		}
+	],
+	"width": 8,
+	"height": 6,
+	"name": "Intertwine",
+	"hint": "Vines that are the same color may not grow next to one another. You can remove vines by dragging in reverse."
+}
