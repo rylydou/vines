@@ -106,7 +106,7 @@ export function create_engine(canvas: HTMLCanvasElement, config: EngineConfig): 
 				gfx.fillStyle = 'red'
 				gfx.filter = 'drop-shadow(0 0 6px black)'
 				gfx.fillStyle = 'white'
-				gfx.fillText(`${time_taken}ms`, 0, 32)
+				gfx.fillText(`${Math.round(time_taken * 10) / 10}ms`, 0, 32)
 				gfx.filter = 'none'
 
 				gfx.beginPath()

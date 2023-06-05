@@ -149,6 +149,7 @@ export function render_board(game: Game) {
 					if (count == 0) {
 						gfx.roundRect(x + 1 / 16, y + 1 / 16, 14 / 16, 14 / 16, 2 / 16)
 						gfx.fill()
+						gfx.fillStyle = colors.black
 					}
 					else {
 						gfx.roundRect(x + 2 / 16, y + 2 / 16, 12 / 16, 12 / 16, 1 / 16)
@@ -156,27 +157,14 @@ export function render_board(game: Game) {
 						gfx.stroke()
 					}
 
-					if (count == 0) {
-						gfx.fillStyle = colors.black
-					}
-
 					gfx.textAlign = 'center'
 					gfx.textBaseline = 'middle'
 					gfx.fontKerning = 'none'
 					gfx.font = `bold .5px ${getComputedStyle(gfx.canvas).fontFamily}`
-					// gfx.fillStyle = 'white'
-					if (isNaN(count))
-						gfx.fillText(':(', x + .5, y + .4)
-					else
-						gfx.fillText(count.toString(), x + .5, y + .4)
+					let text = count.toString()
 
-					// for (let index = 0; index < count; index++) {
-					// 	white.moveTo(x + .5, y + .5)
-					// 	let value = (index * 2) / (watcher.amount * 2) * Math.PI * 2
-					// 	white.lineTo(x + .5 + Math.cos(value) / 3, y + .5 + Math.sin(value) / 3)
-					// 	value = (index * 2 + 1) / (watcher.amount * 2) * Math.PI * 2
-					// 	white.lineTo(x + .5 + Math.cos(value) / 3, y + .5 + Math.sin(value) / 3)
-					// }
+					const y_offset = navigator.userAgent.search('Chrome') > 0 ? .525 : .4
+					gfx.fillText(text, x + .5, y + y_offset)
 				}
 					break
 				case undefined:
