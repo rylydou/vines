@@ -9,6 +9,8 @@ export interface Game {
 	editor_color: Writable<number>
 	editor_amount: Writable<number>
 
+	is_beaten: Writable<boolean>
+
 	name: Writable<string>
 	hint: Writable<string>
 	grid: (Cell | null)[][]
@@ -17,6 +19,8 @@ export interface Game {
 
 	get_transform: (gfx: CanvasRenderingContext2D) => { translation: { x: number, y: number }, scale: number }
 	get_connected: (x: number, y: number) => Cell[]
+	get_vine_color: (x: number, y: number) => number
+	get_watcher_count: (x: number, y: number) => number
 }
 
 export function create_game(engine: Engine): Game {
@@ -26,11 +30,15 @@ export function create_game(engine: Engine): Game {
 		editor_item: writable(null),
 		editor_color: writable(0),
 		editor_amount: writable(0),
+
+		is_beaten: writable(false),
+
 		name: writable(''),
 		hint: writable(''),
 		width: 8,
 		height: 6,
 		grid: create_grid<Cell | null>(8, 6, null),
+
 		get_transform: function (gfx) {
 			let pl = 0
 			let pr = get(game.editor_active) ? 400 * window.devicePixelRatio : 0
@@ -56,6 +64,34 @@ export function create_game(engine: Engine): Game {
 				this.grid[x][y - 1] || null,
 				this.grid[x][y + 1] || null,
 			]
+		},
+		get_vine_color: function (x, y) {
+			if (x < 0 || x >= game.width || y < 0 || y >= game.height) return -1
+			const cell = game.grid[x][y]
+			if (!cell) return -1
+			if (cell.id != 'vine') return -1
+			return (cell as VineCell).color
+		},
+		get_watcher_count: function (x, y) {
+			const watcher = (game.grid[x][y] as WatcherCell)
+
+			let count = watcher.amount
+			for (let xx = -1; xx <= 1; xx++) {
+				for (let yy = -1; yy <= 1; yy++) {
+					if (xx === 0 && yy === 0) continue
+					const cell_color = game.get_vine_color(x + xx, y + yy)
+					if (cell_color < 0) continue
+
+					if (cell_color == watcher.color) {
+						count -= 1
+					}
+					else {
+						count += 1
+					}
+				}
+			}
+
+			return count
 		},
 	} as Game
 
@@ -113,6 +149,7 @@ export function create_game(engine: Engine): Game {
 			const connect_count = connected.filter(t => t && t.id == 'vine' && (t as VineCell).color == vine_color)
 			if (connect_count.length != 1) return
 			set_tile(x, y, { id: 'vine', color: vine_color } as VineCell)
+			check_beat()
 			start_draw(x, y)
 			return
 		}
@@ -123,6 +160,7 @@ export function create_game(engine: Engine): Game {
 		// Erase previous vine if it is the end
 		if (vine_erasable) {
 			set_tile(vine_x, vine_y, null)
+			check_beat()
 			start_draw(x, y)
 		}
 	}
@@ -207,6 +245,35 @@ export function create_game(engine: Engine): Game {
 		if (cell == tile) return
 		game.grid[x][y] = tile
 		engine.render()
+	}
+
+	function check_beat() {
+		if (get(game.is_beaten)) return
+
+		let invalid_flag = false
+		let x = 0
+		for (const col of game.grid) {
+			let y = 0
+			for (const cell of col) {
+				if (!cell) {
+					invalid_flag = true
+					break
+				}
+				if (cell.id == 'watcher') {
+					const count = game.get_watcher_count(x, y)
+					if (count != 0) {
+						invalid_flag = true
+						break
+					}
+				}
+				if (invalid_flag) break
+				y++
+			}
+			x++
+		}
+
+		if (!invalid_flag)
+			game.is_beaten.set(true)
 	}
 
 	return game

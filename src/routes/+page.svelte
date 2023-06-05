@@ -27,12 +27,13 @@
 	let editor_color: Writable<number>
 	let editor_amount: Writable<number>
 
+	let is_beaten: Writable<boolean>
 	let name: Writable<string>
 	let hint: Writable<string>
 
 	let meta_page = false
 
-	onMount(() => {
+	onMount(async function () {
 		engine = create_engine(canvas, {})
 		game = create_game(engine)
 		editor_item = game.editor_item
@@ -40,10 +41,13 @@
 		editor_color = game.editor_color
 		editor_amount = game.editor_amount
 
+		is_beaten = game.is_beaten
 		name = game.name
 		hint = game.hint
 
-		engine.initialize()
+		await engine.initialize()
+
+		load_level()
 	})
 
 	function fullscreen() {
@@ -66,11 +70,11 @@
 	function create() {
 		let input: string | null
 
-		input = prompt('Level Width', '10')
+		input = prompt('Level Width', '8')
 		if (!input) return
 		const width = Number.parseInt(input)
 
-		input = prompt('Level Width', '10')
+		input = prompt('Level Height', '6')
 		if (!input) return
 		const height = Number.parseInt(input)
 
@@ -120,7 +124,26 @@
 		navigator.clipboard.writeText(json)
 	}
 
-	function copy_compressed() {}
+	let levels = ['tut1', 'tut2', 'tut3', 'lvl_watchers', 'lvl_rgb', 'lvl_rgby']
+	let level_index = 0
+
+	function next_level() {
+		if (level_index < levels.length - 1) level_index++
+		load_level()
+	}
+
+	function prev_level() {
+		if (level_index > 0) level_index--
+		load_level()
+	}
+
+	async function load_level() {
+		const responce = await fetch('/data/levels/' + levels[level_index] + '.json')
+		const obj = await responce.json()
+		is_beaten.set(false)
+		deserialize(game, obj)
+		engine.render()
+	}
 </script>
 
 <div bind:this={container} class="bg-[#2c1b2e] w-full h-full grid place-items-center">
@@ -139,6 +162,21 @@
 				{$hint}
 			</div>
 		{/if}
+
+		<div class="absolute top-12 left-12 flex flex-row gap-2">
+			{#if level_index < levels.length - 1}
+				<button on:click={next_level} class="solid" class:solid-inv={$is_beaten}>
+					{#if $is_beaten}
+						Next Level
+					{:else}
+						Skip Level
+					{/if}
+				</button>
+			{/if}
+			{#if level_index > 0}
+				<button on:click={prev_level} class="solid"> Previous Level </button>
+			{/if}
+		</div>
 
 		<div class="absolute top-12 right-12">
 			{#if editor_active}
@@ -160,6 +198,8 @@
 
 		{#if $editor_active}
 			<div class="absolute right-12 flex flex-col max-w-sm h-96 p-4 bg-black color-white">
+				<h1 class="color-red mb-2">Level Editor (not the game)</h1>
+
 				<div class="flex flex-row flex-wrap gap-2 mb-4">
 					<button class="px-3 py-1" on:click={create}>
 						<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
@@ -176,10 +216,6 @@
 					<button class="px-3 py-1" on:click={copy_json}>
 						<div class="i-pixelarticons-code min-w-6 min-h-6" />
 						Copy JSON
-					</button>
-					<button class="px-3 py-1" on:click={copy_compressed}>
-						<div class="i-pixelarticons-upload min-w-6 min-h-6" />
-						Share
 					</button>
 				</div>
 

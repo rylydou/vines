@@ -1,0 +1,51 @@
+{
+	"___VERSION___": 1,
+	"_PALETTE_": 1,
+	"arr": [
+		{
+			"id": "vine",
+			"color": 1
+		},
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "watcher",
+			"color": 1,
+			"amount": 6
+		},
+		null,
+		{
+			"id": "vine",
+			"color": 3
+		},
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		{
+			"id": "watcher",
+			"color": 2,
+			"amount": 2
+		},
+		null,
+		{
+			"id": "vine",
+			"color": 2
+		},
+		null,
+		null,
+		null
+	],
+	"width": 6,
+	"height": 4,
+	"name": "RGB",
+	"hint": ""
+}

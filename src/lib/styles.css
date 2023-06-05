@@ -1,5 +1,13 @@
+:disabled {
+	opacity: .25;
+}
+
 button {
-	@apply flex flex-row justify-center gap-2 px-4 py-2 bg-transparent decoration-2 decoration-offset-2 hover:(underline);
+	@apply flex flex-row justify-center gap-2 px-4 py-2 bg-transparent decoration-2 decoration-offset-2;
+}
+
+button:not(:disabled) {
+	@apply hover:(underline)
 }
 
 button.solid {
