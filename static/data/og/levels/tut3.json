@@ -1,0 +1,1 @@
+{"VINES":[1,1],"str":"b b b b b b b v1 a a a b b b b w17 a b b a a a a b b a w23 b b b b a a a v2 b b b b b b b","width":7,"height":6,"name":"Fulfill the Criteria","hint":"The number will decease if surrounded by the same color. If the color is different then the number will increase. The number must reach zero to win."}

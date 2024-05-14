@@ -47,7 +47,7 @@
 
 		await engine.initialize()
 
-		load_level()
+		fetch_worlds()
 	})
 
 	function fullscreen() {
@@ -84,34 +84,16 @@
 		engine.render()
 	}
 
-	const PREFIX = 'puzzle3_'
 	let input = ''
-	function save() {
-		input = prompt('Filename', input) || input
-		if (!input) return
-
-		const obj = serialize(game)
-		const json = JSON.stringify(obj)
-		localStorage.setItem(PREFIX + input, json)
-	}
-
 	function load() {
-		input = prompt('Filename or JSON', input) || input
-		input.trim()
-		if (!input) return
-
-		let json: string | null
-		if (input.startsWith('{') && input.endsWith('}')) {
-			json = input
-		} else {
-			json = localStorage.getItem(PREFIX + input.toLowerCase())
-		}
+		let json = prompt('Paste level data:', input) || input
+		json.trim()
 
 		if (!json) return
 
 		const obj = JSON.parse(json)
 		if (!deserialize(game, obj)) {
-			console.error('An error occurred while deserializing level json!')
+			window.alert('Failed to load level data!')
 			return
 		}
 
@@ -124,7 +106,9 @@
 		navigator.clipboard.writeText(json)
 	}
 
-	let levels = ['tut1', 'tut2', 'tut3', 'lvl_watchers', 'lvl_rgb', 'lvl_rgby']
+	let worlds: [string, string][] = []
+	let world_id = ''
+	let levels: string[] = []
 	let level_index = 0
 
 	function next_level() {
@@ -138,11 +122,41 @@
 	}
 
 	async function load_level() {
-		const responce = await fetch('/data/levels/' + levels[level_index] + '.json')
-		const obj = await responce.json()
+		if (!world_id) return
+		if (levels.length <= 0) return
+		const response = await fetch(`/data/${world_id}/levels/${levels[level_index]}.json`)
+		if (!response.ok) {
+			window.alert('Failed to load level! Try refreshing or try again later.')
+			return
+		}
+		const data = await response.json()
 		is_beaten.set(false)
-		deserialize(game, obj)
+		deserialize(game, data)
 		engine.render()
+	}
+
+	async function fetch_worlds() {
+		const response = await fetch('/data/index.json')
+		if (!response.ok) {
+			window.alert('Failed to load worlds! Try refreshing or try again later.')
+			return
+		}
+		const data = await response.json()
+		worlds = Object.entries(data.worlds)
+	}
+
+	async function load_world() {
+		if (!world_id) return
+		const response = await fetch(`/data/${world_id}/index.json`)
+		if (!response.ok) {
+			window.alert('Failed to load world! Try refreshing or try again later.')
+			return
+		}
+		const data = await response.json()
+		levels = data.levels
+
+		level_index = 0
+		load_level()
 	}
 </script>
 
@@ -153,17 +167,38 @@
 		class="w-full h-full font-display"
 	/>
 
+	{#if world_id == ''}
+		<div class="fixed p-8 min-w-80 bg-black fg-white">
+			<h1 class="text-xl font-bold text-center mb-4">Pick a world</h1>
+			<ul class="flex flex-wrap justify-between">
+				{#each worlds as world}
+					<li class="contents">
+						<button
+							class="p-0"
+							on:click={() => {
+								world_id = world[0]
+								load_world()
+							}}
+						>
+							{world[1]}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
+
 	{#if game}
 		{#if $hint}
 			<div
-				class="absolute bottom-12 flex flex-row gap-2 p-2 pr-4 bg-black color-white transition-opacity-1000 hover:opacity-10 hover:transition-opacity-100"
+				class="absolute flex flex-row gap-2 p-2 pr-4 bg-black bottom-12 color-white transition-opacity-1000 hover:opacity-10 hover:transition-opacity-100"
 			>
 				<div class="i-pixelarticons-info-box min-w-6 min-h-6" />
 				{$hint}
 			</div>
 		{/if}
 
-		<div class="absolute top-12 left-12 flex flex-row gap-2">
+		<div class="absolute flex flex-row gap-2 top-12 left-12">
 			{#if level_index < levels.length - 1}
 				<button on:click={next_level} class="solid" class:solid-inv={$is_beaten}>
 					{#if $is_beaten}
@@ -197,25 +232,21 @@
 		</div>
 
 		{#if $editor_active}
-			<div class="absolute right-12 flex flex-col max-w-sm h-96 p-4 bg-black color-white">
-				<h1 class="color-red mb-2">Level Editor (not the game)</h1>
+			<div class="absolute flex flex-col max-w-sm p-4 bg-black right-12 h-96 color-white">
+				<h1 class="mb-2 color-red">Level Editor (not the game)</h1>
 
 				<div class="flex flex-row flex-wrap gap-2 mb-4">
 					<button class="px-3 py-1" on:click={create}>
 						<div class="i-pixelarticons-file-plus min-w-6 min-h-6" />
 						Create
 					</button>
-					<button class="px-3 py-1" on:click={save}>
-						<div class="i-pixelarticons-save min-w-6 min-h-6" />
-						Save
+					<button class="px-3 py-1" on:click={copy_json}>
+						<div class="i-pixelarticons-code min-w-6 min-h-6" />
+						Copy
 					</button>
 					<button class="px-3 py-1" on:click={load}>
 						<div class="i-pixelarticons-file min-w-6 min-h-6" />
-						Load
-					</button>
-					<button class="px-3 py-1" on:click={copy_json}>
-						<div class="i-pixelarticons-code min-w-6 min-h-6" />
-						Copy JSON
+						Paste
 					</button>
 				</div>
 
@@ -261,13 +292,13 @@
 						{/each}
 					</div>
 
-					<div class="my-2 flex flex-col gap-2">
+					<div class="flex flex-col gap-2 my-2">
 						{#if cells_with_color.indexOf($editor_item || '') >= 0}
-							<div class="w-full h-10 flex flex-row justify-stretch gap-2">
+							<div class="flex flex-row w-full h-10 gap-2 justify-stretch">
 								{#each color_palettes as palette, index (index)}
 									<button
 										on:click={() => ($editor_color = index)}
-										class="w-full p-0 justify-center items-center color-black"
+										class="items-center justify-center w-full p-0 color-black"
 										style="background-color: {palette.fg};"
 									>
 										{#if index == $editor_color}
@@ -300,7 +331,7 @@
 	{/if}
 </div>
 
-<div class="absolute z-50 bottom-12 right-12 flex flex-row-reverse gap-2">
+<div class="absolute z-50 flex flex-row-reverse gap-2 bottom-12 right-12">
 	<button class=" solid icon" on:click={fullscreen} title="Go fullscreen">
 		<div class="i-pixelarticons-scale min-w-6 min-h-6" />
 	</button>

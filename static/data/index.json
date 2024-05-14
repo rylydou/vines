@@ -1,9 +1,6 @@
 {
-	"levels": [
-		"tut1",
-		"tut2",
-		"tut3",
-		"lvl_watchers",
-		"lvl_rgb"
-	]
+	"worlds": {
+		"og": "OG Levels",
+		"blake": "Blake's Lost Levels"
+	}
 }
